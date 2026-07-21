@@ -1,0 +1,1 @@
+/usr/bin/c++ -O2 -g -DNDEBUG -arch arm64 -Wl,-search_paths_first -Wl,-headerpad_max_install_names "CMakeFiles/cove-PolygonBenchmark.dir/cove-PolygonBenchmark_autogen/mocs_compilation.cpp.o" "CMakeFiles/cove-PolygonBenchmark.dir/PolygonTest.cpp.o" -o cove-PolygonBenchmark  ../libcove-vectorizer.a -lQt::Test -lQt::Gui ../libcove-potrace.a -lQt::Concurrent

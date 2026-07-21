@@ -1,0 +1,2 @@
+/usr/bin/ar qc libQtSingleApplication.a CMakeFiles/QtSingleApplication.dir/QtSingleApplication_autogen/mocs_compilation.cpp.o CMakeFiles/QtSingleApplication.dir/src/qtlocalpeer.cpp.o CMakeFiles/QtSingleApplication.dir/src/qtsingleapplication.cpp.o CMakeFiles/QtSingleApplication.dir/src/qtsinglecoreapplication.cpp.o
+/usr/bin/ranlib libQtSingleApplication.a

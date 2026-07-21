@@ -38,6 +38,6 @@ target_include_directories(QtSingleApplication
 )
 
 target_link_libraries(QtSingleApplication
-  PUBLIC Qt5::Widgets
-  PUBLIC Qt5::Network
+  PUBLIC Qt::Widgets
+  PUBLIC Qt::Network
 )

@@ -1,0 +1,2 @@
+/usr/bin/ar qc libcove-potrace.a "CMakeFiles/cove-potrace.dir/potrace/curve.c.o" "CMakeFiles/cove-potrace.dir/potrace/potracelib.c.o" "CMakeFiles/cove-potrace.dir/potrace/trace.c.o"
+/usr/bin/ranlib libcove-potrace.a

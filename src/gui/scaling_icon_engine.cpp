@@ -95,8 +95,12 @@ ScalingIconEngine::~ScalingIconEngine() = default;
 
 ScalingIconEngine::ScalingIconEngine(const QString& filename)
 : QIconEngine()
-, icon(filename + QLatin1String(".bmp"))
 {
+	// Since Qt 6.7, QIcon(filename) defers engine creation, so the ".bmp"
+	// trick must go through addFile() to instantiate a pixmap engine now.
+	// Otherwise the later addFile() would route back to this plugin,
+	// causing infinite recursion.
+	icon.addFile(filename + QLatin1String(".bmp"));
 	icon.addFile(filename);
 }
 
@@ -163,13 +167,13 @@ QString ScalingIconEngine::key() const
 }
 
 // override
-QList<QSize> ScalingIconEngine::availableSizes(QIcon::Mode mode, QIcon::State state) const
+QList<QSize> ScalingIconEngine::availableSizes(QIcon::Mode mode, QIcon::State state)
 {
 	return icon.availableSizes(mode, state);
 }
 
 // override
-QString  ScalingIconEngine::iconName() const
+QString  ScalingIconEngine::iconName()
 {
 	return icon.name();
 }

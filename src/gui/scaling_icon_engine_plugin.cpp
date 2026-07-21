@@ -34,7 +34,18 @@ ScalingIconEnginePlugin::ScalingIconEnginePlugin(QObject* parent)
 
 QIconEngine* ScalingIconEnginePlugin::create(const QString& filename)
 {
-	return new ScalingIconEngine(filename);
+	// ScalingIconEngine's constructor populates its inner QIcon via
+	// QIcon::addFile, which may route back to this plugin (since Qt 6.7,
+	// QIcon defers engine creation, and a null engine is discarded after
+	// each addFile). Returning nullptr on re-entry makes Qt fall back to
+	// its internal pixmap engine, avoiding infinite recursion.
+	static thread_local bool creating = false;
+	if (creating)
+		return nullptr;
+	creating = true;
+	auto* engine = new ScalingIconEngine(filename);
+	creating = false;
+	return engine;
 }
 
 

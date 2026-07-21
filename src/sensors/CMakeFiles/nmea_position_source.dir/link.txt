@@ -1,0 +1,2 @@
+/usr/bin/ar qc libnmea_position_source.a CMakeFiles/nmea_position_source.dir/nmea_position_source_autogen/mocs_compilation.cpp.o CMakeFiles/nmea_position_source.dir/nmea_position_plugin.cpp.o
+/usr/bin/ranlib libnmea_position_source.a

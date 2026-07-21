@@ -36,7 +36,6 @@
 #include <QtGlobal>
 #include <QtMath>
 #include <QChar>
-#include <QCharRef>
 #include <QDir>
 #include <QFileInfo>
 #include <QFlags>
@@ -49,9 +48,6 @@
 #include <QPointF>
 #include <QRectF>
 #include <QString>
-#include <QTextCodec>
-#include <QTextDecoder>
-#include <QTextEncoder>
 #include <QTextStream>
 #include <QTransform>
 #include <QVarLengthArray>
@@ -525,7 +521,7 @@ QString stringForSpotColor(int i, const MapColor& color)
 	out << color.getSpotColorName()
 	    << "\tn" << i
 	    << "\tv1"
-	    << fixed << qSetRealNumberPrecision(1)
+	    << Qt::fixed << qSetRealNumberPrecision(1)
 	    << "\tc" << qRound(cmyk.c * 200)/2.0
 	    << "\tm" << qRound(cmyk.m * 200)/2.0
 	    << "\ty" << qRound(cmyk.y * 200)/2.0
@@ -953,7 +949,7 @@ void OcdFileExport::exportGeoreferencing()
 	
 	QString string_1039;
 	QTextStream out(&string_1039, QIODevice::Append);
-	out << fixed
+	out << Qt::fixed
 	    << "\tm" << fields.m
 	    << qSetRealNumberPrecision(4)
 	    << "\tg" << grid_spacing_map

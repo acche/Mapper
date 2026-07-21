@@ -37,7 +37,7 @@
 #include <QScreen>
 #include <QSettings>
 #include <QStringList>
-#include <QStringRef>
+#include <QStringView>
 #include <QVector>
 
 
@@ -172,7 +172,7 @@ Settings::Settings()
 
 	QSettings settings;
 	
-#ifndef Q_OS_ANDROID
+#if !defined(Q_OS_ANDROID) && !defined(Q_OS_IOS)
 	// Overwrite default value with actual setting
 	touch_mode_enabled = mobileModeEnforced() || settings.value(QLatin1String("General/touch_mode_enabled"), touch_mode_enabled).toBool();
 #endif
@@ -358,7 +358,7 @@ int Settings::getStartDragDistancePx()
 }
 
 
-#ifndef Q_OS_ANDROID
+#if !defined(Q_OS_ANDROID) && !defined(Q_OS_IOS)
 
 void Settings::setTouchModeEnabled(bool enabled)
 {
@@ -404,7 +404,7 @@ void Settings::setNmeaSerialPort(const QString& name)
 
 std::vector<QColor> Settings::colorsStringToVector(QString config_string)
 {
-	auto const color_strings = config_string.splitRef(QLatin1Char(','));
+	auto const color_strings = QStringView{config_string}.split(QLatin1Char(','));
 
 	auto colors = std::vector<QColor>();
 	colors.reserve(color_strings.size());

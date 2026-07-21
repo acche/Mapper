@@ -142,8 +142,12 @@ GPSDisplay::GPSDisplay(MapWidget* widget, const Georeferencing& georeferencing, 
 	source->setPreferredPositioningMethods(QGeoPositionInfoSource::SatellitePositioningMethods);
 	source->setUpdateInterval(1000);
 	connect(source, &QGeoPositionInfoSource::positionUpdated, this, &GPSDisplay::positionUpdated, Qt::QueuedConnection);
-	connect(source, QOverload<QGeoPositionInfoSource::Error>::of(&QGeoPositionInfoSource::error), this, &GPSDisplay::error);
-	connect(source, &QGeoPositionInfoSource::updateTimeout, this, &GPSDisplay::updateTimeout);
+	connect(source, &QGeoPositionInfoSource::errorOccurred, this, [this](QGeoPositionInfoSource::Error e) {
+		if (e == QGeoPositionInfoSource::UpdateTimeoutError)
+			emit updateTimeout();
+		else
+			emit error();
+	});
 #endif
 
 	widget->setGPSDisplay(this);

@@ -1,0 +1,2 @@
+/usr/bin/ar qc libscaling-icon-engine.a "CMakeFiles/scaling-icon-engine.dir/scaling-icon-engine_autogen/mocs_compilation.cpp.o" "CMakeFiles/scaling-icon-engine.dir/gui/scaling_icon_engine.cpp.o" "CMakeFiles/scaling-icon-engine.dir/gui/scaling_icon_engine_plugin.cpp.o"
+/usr/bin/ranlib libscaling-icon-engine.a

@@ -1,0 +1,39 @@
+#!/bin/zsh
+# Cross-compile GDAL for iOS device (arm64), minimal raster+vector drivers.
+# Uses GDAL-internal libtiff/libgeotiff/libjpeg/libpng; external PROJ from deps-dev.
+set -e
+ROOT=/Users/ac/Dev/aibox/app/open-orienteering-map
+SRC=$ROOT/gdal-3.9.3
+BUILD=$ROOT/ios-build/gdal-dev
+PREFIX=$ROOT/ios-build/deps-dev
+
+cmake -S "$SRC" -B "$BUILD" -G Ninja \
+  -DCMAKE_SYSTEM_NAME=iOS \
+  -DCMAKE_OSX_SYSROOT=iphoneos \
+  -DCMAKE_OSX_ARCHITECTURES=arm64 \
+  -DCMAKE_OSX_DEPLOYMENT_TARGET=17.0 \
+  -DCMAKE_BUILD_TYPE=Release \
+  -DBUILD_SHARED_LIBS=OFF \
+  -DCMAKE_PREFIX_PATH="$PREFIX" \
+  -DCMAKE_FIND_ROOT_PATH="$PREFIX" \
+  -DPROJ_DIR="$PREFIX/lib/cmake/proj" \
+  -DBUILD_APPS=OFF \
+  -DBUILD_TESTING=OFF \
+  -DBUILD_PYTHON_BINDINGS=OFF \
+  -DGDAL_USE_EXTERNAL_LIBS=OFF \
+  -DGDAL_USE_INTERNAL_LIBS=ON \
+  -DGDAL_USE_ZLIB=ON -DGDAL_USE_ZLIB_INTERNAL=OFF \
+  -DGDAL_BUILD_OPTIONAL_DRIVERS=OFF \
+  -DOGR_BUILD_OPTIONAL_DRIVERS=OFF \
+  -DGDAL_ENABLE_DRIVER_GTIFF=ON \
+  -DGDAL_ENABLE_DRIVER_PNG=ON \
+  -DGDAL_ENABLE_DRIVER_JPEG=ON \
+  -DOGR_ENABLE_DRIVER_GPX=OFF \
+  -DOGR_ENABLE_DRIVER_DXF=ON \
+  -DOGR_ENABLE_DRIVER_OSM=OFF \
+  -DOGR_ENABLE_DRIVER_KML=OFF \
+  -DOGR_ENABLE_DRIVER_SHAPE=ON \
+  -DCMAKE_INSTALL_PREFIX="$PREFIX"
+cmake --build "$BUILD" -j8
+cmake --install "$BUILD"
+echo "GDAL for iOS device installed to $PREFIX"

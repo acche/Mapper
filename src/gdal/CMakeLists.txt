@@ -17,9 +17,7 @@
 #    along with OpenOrienteering.  If not, see <http://www.gnu.org/licenses/>.
 
 find_package(GDAL MODULE REQUIRED)
-find_package(Qt5Core REQUIRED)
-find_package(Qt5Gui REQUIRED)
-find_package(Qt5Widgets REQUIRED)
+find_package(Qt6 REQUIRED COMPONENTS Core Gui Widgets)
 set(CMAKE_AUTOMOC ON)
  
 # Extra header to be shown in the IDE or to be translated
@@ -54,7 +52,11 @@ target_compile_definitions(mapper-gdal INTERFACE MAPPER_USE_GDAL)
 target_include_directories(mapper-gdal SYSTEM PRIVATE ${GDAL_INCLUDE_DIRS})
 target_include_directories(mapper-gdal PRIVATE "${PROJECT_SOURCE_DIR}/src")
 
-target_link_libraries(mapper-gdal ${GDAL_LIBRARIES} Qt5::Core Qt5::Gui Qt5::Widgets Mapper_Common)
+target_link_libraries(mapper-gdal ${GDAL_LIBRARIES} Qt::Core Qt::Gui Qt::Widgets Mapper_Common)
+if(IOS)
+	# Static GDAL needs its system-library dependencies explicitly.
+	target_link_libraries(mapper-gdal z sqlite3 iconv)
+endif()
 
 set_target_properties(mapper-gdal PROPERTIES PREFIX "")
 
@@ -70,7 +72,9 @@ add_custom_command(OUTPUT "${PROJECT_BINARY_DIR}/gdal/mapper-osmconf.ini"
 
 # Utility to dump GDAL format information
 
-add_executable(mapper-gdal-info mapper_gdal_info.cpp)
-target_include_directories(mapper-gdal-info SYSTEM PRIVATE ${GDAL_INCLUDE_DIRS})
-target_link_libraries(mapper-gdal-info ${GDAL_LIBRARIES})
+if(NOT IOS)
+	add_executable(mapper-gdal-info mapper_gdal_info.cpp)
+	target_include_directories(mapper-gdal-info SYSTEM PRIVATE ${GDAL_INCLUDE_DIRS})
+	target_link_libraries(mapper-gdal-info ${GDAL_LIBRARIES})
+endif()
 

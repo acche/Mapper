@@ -1,0 +1,13 @@
+# Target labels
+ Clipper
+# Source files and their labels
+/Users/ac/Dev/aibox/app/open-orienteering-map/mapper/3rd-party/clipper/CMakeFiles/Clipper
+/Users/ac/Dev/aibox/app/open-orienteering-map/mapper/3rd-party/clipper/CMakeFiles/Clipper.rule
+/Users/ac/Dev/aibox/app/open-orienteering-map/mapper/3rd-party/clipper/CMakeFiles/Clipper-complete.rule
+/Users/ac/Dev/aibox/app/open-orienteering-map/mapper/3rd-party/clipper/Clipper-prefix/src/Clipper-stamp/Clipper-build.rule
+/Users/ac/Dev/aibox/app/open-orienteering-map/mapper/3rd-party/clipper/Clipper-prefix/src/Clipper-stamp/Clipper-configure.rule
+/Users/ac/Dev/aibox/app/open-orienteering-map/mapper/3rd-party/clipper/Clipper-prefix/src/Clipper-stamp/Clipper-download.rule
+/Users/ac/Dev/aibox/app/open-orienteering-map/mapper/3rd-party/clipper/Clipper-prefix/src/Clipper-stamp/Clipper-install.rule
+/Users/ac/Dev/aibox/app/open-orienteering-map/mapper/3rd-party/clipper/Clipper-prefix/src/Clipper-stamp/Clipper-mkdir.rule
+/Users/ac/Dev/aibox/app/open-orienteering-map/mapper/3rd-party/clipper/Clipper-prefix/src/Clipper-stamp/Clipper-patch.rule
+/Users/ac/Dev/aibox/app/open-orienteering-map/mapper/3rd-party/clipper/Clipper-prefix/src/Clipper-stamp/Clipper-update.rule

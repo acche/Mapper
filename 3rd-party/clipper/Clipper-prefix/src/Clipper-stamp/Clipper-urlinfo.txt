@@ -1,0 +1,12 @@
+# This is a generated file and its contents are an internal implementation detail.
+# The download step will be re-executed if anything in this file changes.
+# No other meaning or use of this file is supported.
+
+method=url
+command=/opt/homebrew/bin/cmake;-DCMAKE_MESSAGE_LOG_LEVEL=VERBOSE;-P;/Users/ac/Dev/aibox/app/open-orienteering-map/mapper/3rd-party/clipper/Clipper-prefix/src/Clipper-stamp/download-Clipper.cmake;COMMAND;/opt/homebrew/bin/cmake;-DCMAKE_MESSAGE_LOG_LEVEL=VERBOSE;-P;/Users/ac/Dev/aibox/app/open-orienteering-map/mapper/3rd-party/clipper/Clipper-prefix/src/Clipper-stamp/verify-Clipper.cmake;COMMAND;/opt/homebrew/bin/cmake;-DCMAKE_MESSAGE_LOG_LEVEL=VERBOSE;-P;/Users/ac/Dev/aibox/app/open-orienteering-map/mapper/3rd-party/clipper/Clipper-prefix/src/Clipper-stamp/extract-Clipper.cmake
+source_dir=/Users/ac/Dev/aibox/app/open-orienteering-map/mapper/3rd-party/clipper/Clipper-prefix/src/Clipper
+work_dir=/Users/ac/Dev/aibox/app/open-orienteering-map/mapper/3rd-party/clipper/Clipper-prefix/src
+url(s)=http://sourceforge.net/projects/polyclipping/files/clipper_ver6.4.2.zip/download
+hash=MD5=100b4ec56c5308bac2d10f3966e35e11
+      no_extract=
+

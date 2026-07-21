@@ -750,7 +750,7 @@ bool MainWindow::showSaveOnCloseDialog()
 
 void MainWindow::saveWindowSettings()
 {
-#if !defined(Q_OS_ANDROID)
+#if !defined(Q_OS_ANDROID) && !defined(Q_OS_IOS)
 	QSettings settings;
 	
 	settings.beginGroup(QString::fromLatin1("MainWindow"));
@@ -763,7 +763,10 @@ void MainWindow::saveWindowSettings()
 
 void MainWindow::loadWindowSettings()
 {
-#if defined(Q_OS_ANDROID)
+#if defined(Q_OS_IOS)
+	// iOS: let the platform size the window to the screen, also on rotation.
+	setWindowState(windowState() | Qt::WindowMaximized);
+#elif defined(Q_OS_ANDROID)
 	// Always show the window on the whole available area on Android
 	// Qt 5.14 adds QWidget::screen().
 	if (auto* screen = qApp->screenAt(geometry().center()))
@@ -899,7 +902,7 @@ bool MainWindow::openPath(const QString& path, const FileFormat* format)
 	if (path.isEmpty())
 		return true;
 	
-#ifdef Q_OS_ANDROID
+#if defined(Q_OS_ANDROID) || defined(Q_OS_IOS)
 	showStatusBarMessageImmediately(tr("Opening %1").arg(QFileInfo(path).fileName()));
 #else
 	MainWindow* const existing = findMainWindow(path);
@@ -952,7 +955,7 @@ bool MainWindow::openPath(const QString& path, const FileFormat* format)
 	bool new_autosave_conflict = QFileInfo::exists(autosave_path);
 	if (new_autosave_conflict)
 	{
-#if defined(Q_OS_ANDROID)
+#if defined(Q_OS_ANDROID) || defined(Q_OS_IOS)
 		// Assuming small screen, showing dialog before opening the file
 		AutosaveDialog* autosave_dialog = new AutosaveDialog(path, autosave_path, autosave_path, this);
 		int result = autosave_dialog->exec();
@@ -974,7 +977,7 @@ bool MainWindow::openPath(const QString& path, const FileFormat* format)
 	}
 	
 	MainWindow* open_window = this;
-#if !defined(Q_OS_ANDROID)
+#if !defined(Q_OS_ANDROID) && !defined(Q_OS_IOS)
 	if (has_opened_file)
 		open_window = new MainWindow();
 #endif
@@ -993,7 +996,7 @@ bool MainWindow::openPath(const QString& path, const FileFormat* format)
 	settings.remove(reopen_blocker);
 	setMostRecentlyUsedFile(path);
 	
-#if !defined(Q_OS_ANDROID)
+#if !defined(Q_OS_ANDROID) && !defined(Q_OS_IOS)
 	// Assuming large screen. Android handled above.
 	if (new_autosave_conflict)
 	{
@@ -1370,7 +1373,7 @@ void MainWindow::linkClicked(const QString &link)
 	else if (link.compare(QLatin1String("about:"), Qt::CaseInsensitive) == 0)
 		showAbout();
 	else if (link.startsWith(QLatin1String("examples:"), Qt::CaseInsensitive))
-		openPathLater(QLatin1String("data:/examples/") + link.midRef(9));
+		openPathLater(QLatin1String("data:/examples/") + QStringView(link).mid(9));
 	else
 		QDesktopServices::openUrl(link);
 }

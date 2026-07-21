@@ -55,6 +55,11 @@ void setSeachPaths()
 	auto resources_dir = app_dir.absoluteFilePath(QLatin1String("../Resources"));
 	data_paths.append(resources_dir);
 	doc_paths.append(resources_dir + QLatin1String("/doc"));
+#elif defined(Q_OS_IOS)
+	// iOS: load resources from the data directory in the app bundle root
+	auto app_dir = QDir(QCoreApplication::applicationDirPath()).absolutePath();
+	data_paths.append(app_dir + QLatin1String("/data"));
+	doc_paths.append(app_dir + QLatin1String("/data/doc"));
 #elif defined(Q_OS_WIN)
 	// Windows: load resources from the application directory
 	auto app_dir = QDir(QCoreApplication::applicationDirPath()).absolutePath();

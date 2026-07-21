@@ -48,8 +48,8 @@ foreach(target
 	target_link_libraries(${target}
 	  PRIVATE
 	    cove-vectorizer
-	    Qt5::Test
-	    Qt5::Gui
+	    Qt::Test
+	    Qt::Gui
 	)
 endforeach()
 

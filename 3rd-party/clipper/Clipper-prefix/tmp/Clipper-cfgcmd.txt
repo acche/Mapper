@@ -1,0 +1,1 @@
+cmd='/opt/homebrew/bin/cmake;-E;compare_files;<SOURCE_DIR>/License.txt;/Users/ac/Dev/aibox/app/open-orienteering-map/mapper/3rd-party/clipper/License.txt;COMMAND;/opt/homebrew/bin/cmake;-E;copy;<SOURCE_DIR>/cpp/clipper.cpp;/Users/ac/Dev/aibox/app/open-orienteering-map/mapper/3rd-party/clipper/clipper.cpp'

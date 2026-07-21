@@ -154,8 +154,15 @@ if(Mapper_MANUAL_QTHELP)
 		  IMPORTED_LOCATION ${Qt5Help_QCOLLECTIONGENERATOR_EXECUTABLE}
 		)
 	elseif(NOT Qt5Help_QCOLLECTIONGENERATOR_EXECUTABLE)
-		find_package(Qt5Help REQUIRED)
-		set(Qt5Help_QCOLLECTIONGENERATOR_EXECUTABLE Qt5::qhelpgenerator)
+		# Qt 6 merged qcollectiongenerator into qhelpgenerator (qttools).
+		find_program(Qt5Help_QCOLLECTIONGENERATOR_EXECUTABLE
+		  NAMES qhelpgenerator qhelpgenerator-qt5 qcollectiongenerator
+		  HINTS "${${Mapper_QT}_DIR}/../../../bin" "${${Mapper_QT}_DIR}/../../../libexec"
+		  DOC "The path of the Qt Help collection generator executable"
+		)
+		if(NOT Qt5Help_QCOLLECTIONGENERATOR_EXECUTABLE)
+			message(FATAL_ERROR "qhelpgenerator executable not found.")
+		endif()
 	endif()
 	
 	# Reproducible builds need a modification to the help collection file.

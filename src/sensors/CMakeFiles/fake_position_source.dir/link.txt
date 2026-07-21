@@ -1,0 +1,2 @@
+/usr/bin/ar qc libfake_position_source.a CMakeFiles/fake_position_source.dir/fake_position_source_autogen/mocs_compilation.cpp.o CMakeFiles/fake_position_source.dir/fake_position_plugin.cpp.o CMakeFiles/fake_position_source.dir/fake_position_source.cpp.o
+/usr/bin/ranlib libfake_position_source.a

@@ -1,0 +1,2 @@
+/usr/bin/ar qc libcove.a CMakeFiles/cove.dir/cove_autogen/mocs_compilation.cpp.o CMakeFiles/cove.dir/app/classificationconfigform.cpp.o CMakeFiles/cove.dir/app/colorseditform.cpp.o CMakeFiles/cove.dir/app/coverunner.cpp.o CMakeFiles/cove.dir/app/mainform.cpp.o CMakeFiles/cove.dir/app/ImageView.cpp.o CMakeFiles/cove.dir/app/PolygonsView.cpp.o CMakeFiles/cove.dir/app/Settings.cpp.o CMakeFiles/cove.dir/app/UIProgressDialog.cpp.o CMakeFiles/cove.dir/app/vectorizationconfigform.cpp.o
+/usr/bin/ranlib libcove.a

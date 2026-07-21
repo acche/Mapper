@@ -1,0 +1,2 @@
+/usr/bin/ar qc libprintsupport.a CMakeFiles/printsupport.dir/advanced_pdf_printer.cpp.o "CMakeFiles/printsupport.dir/qt-6.2.0/advanced_pdf.cpp.o" "CMakeFiles/printsupport.dir/qt-6.2.0/printengine_advanced_pdf.cpp.o" "CMakeFiles/printsupport.dir/qt-6.2.0/qfontsubset.cpp.o" CMakeFiles/printsupport.dir/printer_properties.cpp.o
+/usr/bin/ranlib libprintsupport.a

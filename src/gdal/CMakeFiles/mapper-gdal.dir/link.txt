@@ -1,0 +1,2 @@
+/usr/bin/ar qc mapper-gdal.a "CMakeFiles/mapper-gdal.dir/mapper-gdal_autogen/mocs_compilation.cpp.o" "CMakeFiles/mapper-gdal.dir/gdal_file.cpp.o" "CMakeFiles/mapper-gdal.dir/gdal_image_reader.cpp.o" "CMakeFiles/mapper-gdal.dir/gdal_manager.cpp.o" "CMakeFiles/mapper-gdal.dir/gdal_settings_page.cpp.o" "CMakeFiles/mapper-gdal.dir/gdal_template.cpp.o" "CMakeFiles/mapper-gdal.dir/kmz_groundoverlay_export.cpp.o" "CMakeFiles/mapper-gdal.dir/ogr_file_format.cpp.o" "CMakeFiles/mapper-gdal.dir/ogr_template.cpp.o"
+/usr/bin/ranlib mapper-gdal.a

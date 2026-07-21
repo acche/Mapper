@@ -17,14 +17,14 @@
 #    You should have received a copy of the GNU General Public License
 #    along with OpenOrienteering.  If not, see <http://www.gnu.org/licenses/>.
 
-find_package(Qt5Core REQUIRED)
-find_package(Qt5Widgets REQUIRED)
+find_package(Qt6 CONFIG REQUIRED COMPONENTS Core Widgets Core5Compat)
 
 if(ANDROID)
-	find_package(Qt5AndroidExtras REQUIRED)
+	find_package(Qt6 CONFIG REQUIRED COMPONENTS AndroidExtras)
+elseif(IOS)
+	find_package(Qt6 CONFIG REQUIRED COMPONENTS Network)
 else()
-	find_package(Qt5Network REQUIRED)
-	find_package(Qt5PrintSupport REQUIRED)
+	find_package(Qt6 CONFIG REQUIRED COMPONENTS Network PrintSupport)
 endif()
 
 set(CMAKE_AUTOMOC ON)
@@ -67,7 +67,7 @@ set(SCALING_ICON_ENGINE_DEFINITIONS
 )
 set(SCALING_ICON_ENGINE_LINK_LIBRARIES
   PUBLIC
-    Qt5::Gui
+    Qt6::Gui
 )
 
 add_library(scaling-icon-engine STATIC  ${SCALING_ICON_ENGINE_SOURCES})
@@ -78,7 +78,7 @@ target_link_libraries(scaling-icon-engine  ${SCALING_ICON_ENGINE_LINK_LIBRARIES}
 # Resources (from project root)
 
 list(APPEND Mapper_RESOURCES "${PROJECT_SOURCE_DIR}/resources.qrc")
-qt5_add_resources(Mapper_RESOURCES_RCC ${Mapper_RESOURCES} OPTIONS -no-compress)
+qt6_add_resources(Mapper_RESOURCES_RCC ${Mapper_RESOURCES} OPTIONS -no-compress)
 
 
 # Mapper common: static library of full runtime 
@@ -315,7 +315,8 @@ add_dependencies(Mapper_Common
 target_link_libraries(Mapper_Common
   Polyclipping::Polyclipping
   ${PROJ_LIBRARIES}
-  Qt5::Widgets
+  Qt::Widgets
+  Qt::Core5Compat
 )
 foreach(lib
   cove
@@ -324,8 +325,8 @@ foreach(lib
   mapper-sensors
   printsupport
   scaling-icon-engine
-  Qt5::AndroidExtras
-  Qt5::Network
+  Qt6::AndroidExtras
+  Qt6::Network
 )
 	if(TARGET ${lib})
 		target_link_libraries(Mapper_Common ${lib})
@@ -360,6 +361,8 @@ endif()
 
 if(ANDROID)
 	add_library(Mapper SHARED ${Mapper_SRCS})
+elseif(IOS)
+	add_executable(Mapper MACOSX_BUNDLE ${Mapper_SRCS})
 else()
 	add_executable(Mapper WIN32 MACOSX_BUNDLE ${Mapper_SRCS})
 	target_compile_definitions(Mapper PRIVATE MAPPER_USE_QTSINGLEAPPLICATION)
@@ -374,7 +377,7 @@ target_compile_definitions(Mapper PRIVATE
   QT_NO_CAST_TO_ASCII
   QT_USE_QSTRINGBUILDER
 )
-if(APPLE)
+if(APPLE AND NOT IOS)
 	add_custom_command(
 	  TARGET Mapper
 	  POST_BUILD
@@ -399,24 +402,14 @@ add_custom_target(Mapper_Android SOURCES
 )
 
 
-# Workaround Qt private include dir issue
-# Cf. https://bugreports.qt.io/browse/QTBUG-37417
-
-set(PRIVATE_MODULES Core Gui)
+# Qt private headers (QBezier etc.) via Qt6 private module components
+set(PRIVATE_MODULES CorePrivate GuiPrivate)
 if(WIN32)
-	list(APPEND PRIVATE_MODULES PrintSupport)
+	list(APPEND PRIVATE_MODULES PrintSupportPrivate)
 endif()
+find_package(Qt6 REQUIRED COMPONENTS ${PRIVATE_MODULES})
 foreach(module ${PRIVATE_MODULES})
-	set(qt_module Qt${module})
-	set(qt5_module Qt5${module})
-	if("${${qt5_module}_PRIVATE_INCLUDE_DIRS}" STREQUAL "")
-		foreach(base_dir ${${qt5_module}_INCLUDE_DIRS})
-			if("${base_dir}" MATCHES "/${qt_module}\$")
-				list(APPEND ${qt5_module}_PRIVATE_INCLUDE_DIRS "${base_dir}/${${qt5_module}_VERSION}/${qt_module}")
-			endif()
-		endforeach()
-	endif()
-	target_include_directories(Mapper_Common SYSTEM PRIVATE ${${qt5_module}_PRIVATE_INCLUDE_DIRS})
+	target_link_libraries(Mapper_Common Qt6::${module})
 endforeach()
 
 

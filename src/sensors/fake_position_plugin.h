@@ -37,7 +37,7 @@ namespace OpenOrienteering
 class FakePositionPlugin : public QObject, public QGeoPositionInfoSourceFactory 
 {
 	Q_OBJECT
-	Q_PLUGIN_METADATA(IID "org.qt-project.qt.position.sourcefactory/5.0"
+	Q_PLUGIN_METADATA(IID "org.qt-project.qt.position.sourcefactory/6.0"
 	                  FILE "fake_position_plugin.json")
 	Q_INTERFACES(QGeoPositionInfoSourceFactory)
 public:
@@ -47,9 +47,9 @@ public:
 	FakePositionPlugin& operator=(const FakePositionPlugin&) = delete;
 	FakePositionPlugin&& operator=(FakePositionPlugin&&) = delete;
 	~FakePositionPlugin() override;
-	QGeoAreaMonitorSource* areaMonitor(QObject* parent) override;
-	QGeoPositionInfoSource* positionInfoSource(QObject* parent) override;
-	QGeoSatelliteInfoSource* satelliteInfoSource(QObject* parent) override;
+	QGeoAreaMonitorSource* areaMonitor(QObject* parent, const QVariantMap& parameters) override;
+	QGeoPositionInfoSource* positionInfoSource(QObject* parent, const QVariantMap& parameters) override;
+	QGeoSatelliteInfoSource* satelliteInfoSource(QObject* parent, const QVariantMap& parameters) override;
 };
 
 

@@ -1,0 +1,43 @@
+{
+	"sources" : 
+	[
+		{
+			"file" : "/Users/ac/Dev/aibox/app/open-orienteering-map/mapper/3rd-party/clipper/CMakeFiles/Clipper"
+		},
+		{
+			"file" : "/Users/ac/Dev/aibox/app/open-orienteering-map/mapper/3rd-party/clipper/CMakeFiles/Clipper.rule"
+		},
+		{
+			"file" : "/Users/ac/Dev/aibox/app/open-orienteering-map/mapper/3rd-party/clipper/CMakeFiles/Clipper-complete.rule"
+		},
+		{
+			"file" : "/Users/ac/Dev/aibox/app/open-orienteering-map/mapper/3rd-party/clipper/Clipper-prefix/src/Clipper-stamp/Clipper-build.rule"
+		},
+		{
+			"file" : "/Users/ac/Dev/aibox/app/open-orienteering-map/mapper/3rd-party/clipper/Clipper-prefix/src/Clipper-stamp/Clipper-configure.rule"
+		},
+		{
+			"file" : "/Users/ac/Dev/aibox/app/open-orienteering-map/mapper/3rd-party/clipper/Clipper-prefix/src/Clipper-stamp/Clipper-download.rule"
+		},
+		{
+			"file" : "/Users/ac/Dev/aibox/app/open-orienteering-map/mapper/3rd-party/clipper/Clipper-prefix/src/Clipper-stamp/Clipper-install.rule"
+		},
+		{
+			"file" : "/Users/ac/Dev/aibox/app/open-orienteering-map/mapper/3rd-party/clipper/Clipper-prefix/src/Clipper-stamp/Clipper-mkdir.rule"
+		},
+		{
+			"file" : "/Users/ac/Dev/aibox/app/open-orienteering-map/mapper/3rd-party/clipper/Clipper-prefix/src/Clipper-stamp/Clipper-patch.rule"
+		},
+		{
+			"file" : "/Users/ac/Dev/aibox/app/open-orienteering-map/mapper/3rd-party/clipper/Clipper-prefix/src/Clipper-stamp/Clipper-update.rule"
+		}
+	],
+	"target" : 
+	{
+		"labels" : 
+		[
+			"Clipper"
+		],
+		"name" : "Clipper"
+	}
+}

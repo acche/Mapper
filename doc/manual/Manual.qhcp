@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<QHelpCollectionProject version="1.0">
+	<assistant>
+		<applicationIcon>/Users/ac/Dev/aibox/app/open-orienteering-map/mapper/doc/manual/../../images/mapper-help.png</applicationIcon>
+		<title>OpenOrienteering Mapper Help</title>
+		<homePage>qthelp://openorienteering.mapper-0.9.7.help/manual/index.html</homePage>
+	</assistant>
+	<docFiles>
+		<generate>
+			<file>
+				<input>html/index.qhp</input>
+				<output>Mapper 0.9.7 Manual.qch</output>
+			</file>
+		</generate>
+		<register>
+			<file>Mapper 0.9.7 Manual.qch</file>
+		</register>
+	</docFiles>
+</QHelpCollectionProject>

@@ -32,7 +32,7 @@ target_include_directories(cove-vectorizer
     "${CMAKE_CURRENT_SOURCE_DIR}"
 )
 target_link_libraries(cove-vectorizer PRIVATE cove-potrace)
-target_link_libraries(cove-vectorizer PUBLIC Qt5::Gui Qt5::Concurrent)
+target_link_libraries(cove-vectorizer PUBLIC Qt::Gui Qt::Concurrent)
 
 set(Cove_SRCS
     app/classificationconfigform.cpp
@@ -58,7 +58,7 @@ target_include_directories(cove
 if(${CMAKE_VERSION} VERSION_LESS 3.8)
 	target_include_directories(cove PRIVATE "${CMAKE_CURRENT_BINARY_DIR}")
 endif()
-target_link_libraries(cove cove-vectorizer Qt5::Widgets)
+target_link_libraries(cove cove-vectorizer Qt::Widgets)
 set_target_properties(cove
   PROPERTIES
     AUTOMOC ON

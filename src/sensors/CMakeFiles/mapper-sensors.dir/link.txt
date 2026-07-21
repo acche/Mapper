@@ -1,0 +1,2 @@
+/usr/bin/ar qc libmapper-sensors.a "CMakeFiles/mapper-sensors.dir/mapper-sensors_autogen/mocs_compilation.cpp.o" "CMakeFiles/mapper-sensors.dir/compass.cpp.o" "CMakeFiles/mapper-sensors.dir/gps_display.cpp.o" "CMakeFiles/mapper-sensors.dir/gps_temporary_markers.cpp.o" "CMakeFiles/mapper-sensors.dir/gps_track_recorder.cpp.o" "CMakeFiles/mapper-sensors.dir/sensors_settings_page.cpp.o"
+/usr/bin/ranlib libmapper-sensors.a
