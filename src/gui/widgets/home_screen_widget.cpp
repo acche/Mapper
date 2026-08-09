@@ -500,6 +500,8 @@ void HomeScreenWidgetMobile::permissionRequestDone()
 QListWidget* HomeScreenWidgetMobile::makeFileListWidget()
 {
 	file_list_widget = new QListWidget();
+	file_list_widget->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+	file_list_widget->setTextElideMode(Qt::ElideMiddle);
 	QScroller::grabGesture(file_list_widget->viewport(), QScroller::TouchGesture);
 	QFont list_font = file_list_widget->font();
 	int pixel_size = list_font.pixelSize();
@@ -583,7 +585,14 @@ void HomeScreenWidgetMobile::updateFileListWidget()
 		{
 			auto file_info = QFileInfo(location.path());
 			auto icon = file_list_widget->style()->standardIcon(QStyle::SP_DirIcon);
+#ifdef Q_OS_IOS
+			// The iOS Documents path contains the simulator/device UUID and app
+			// container UUID. Expose the Files-app concept instead of that
+			// implementation detail; the full path remains available as a tooltip.
+			addItemToFileList(tr("On My iPad"), file_info, location.hint(), icon);
+#else
 			addItemToFileList(location.path(), file_info, location.hint(), icon);
+#endif
 		}
 		
 		// Examples last.
