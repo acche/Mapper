@@ -25,6 +25,9 @@ private slots:
 	void rejectsMalformedManifest();
 	void calculatesProjectLocation();
 	void createsAndPrunesBackups();
+	void importsTemplateAndSidecar();
+	void checksOfflineReadiness();
+	void exportsAndImportsProject();
 };
 
 #endif

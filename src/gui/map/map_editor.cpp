@@ -953,6 +953,9 @@ void MapEditorController::assignKeyboardShortcuts()
 void MapEditorController::createActions()
 {
 	// Define all the actions, saving them into variables as necessary. Can also get them by ID.
+	export_project_act = newAction("export-project", tr("Export complete project..."),
+	                               window, SLOT(showExportProjectDialog()), "save.png",
+	                               tr("Copy the map, templates, tracks, photos and backups for sharing."));
 #ifdef QT_PRINTSUPPORT_LIB
 	auto* print_act_mapper = new QSignalMapper(this);
 	connect(print_act_mapper, &QSignalMapper::mappedInt, this, QOverload<int>::of(&MapEditorController::printClicked));
@@ -1154,6 +1157,7 @@ void MapEditorController::createMenuAndToolbars()
 	insertion_act = print_act;
 #endif
 	file_menu->insertAction(insertion_act, import_act);
+	file_menu->insertAction(insertion_act, export_project_act);
 #ifdef QT_PRINTSUPPORT_LIB
 	QMenu* export_menu = new QMenu(tr("&Export as..."), file_menu);
 	export_menu->menuAction()->setMenuRole(QAction::NoRole);
@@ -1600,6 +1604,7 @@ void MapEditorController::createMobileGUI()
 	col = 0;
 	top_action_bar->addActionAtEnd(window->getCloseAct(), 0, col);
 	top_action_bar->addActionAtEnd(top_action_bar->getOverflowAction(), 1, col++);
+	top_action_bar->addActionAtEnd(export_project_act, 0, col++);
 	
 	top_action_bar->addActionAtEnd(redo_act, 0, col);
 	top_action_bar->addActionAtEnd(undo_act, 1, col++);

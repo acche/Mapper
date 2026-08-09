@@ -37,6 +37,16 @@ struct ProjectBounds
 	bool isValid() const;
 };
 
+/** Result of checking whether an app-managed project is usable offline. */
+struct ProjectReadiness
+{
+	bool map_available = false;
+	bool georeferenced = false;
+	QStringList missing_files;
+
+	bool isOfflineReady() const { return map_available && missing_files.isEmpty(); }
+};
+
 
 /**
  * Metadata which turns a map and its auxiliary files into a portable project.
@@ -112,6 +122,22 @@ public:
 	/** Copies the current map into backups/ and keeps only the newest copies. */
 	bool backupProjectMap(const QString& project_path, const MapProject& project,
 	                      int maximum_backups = 10, QString* error = nullptr) const;
+
+	/** Copies a device file (and common georeferencing sidecars) into templates/. */
+	bool importTemplateFile(const QString& project_path, MapProject& project,
+	                        const QString& source_path, QString& imported_path,
+	                        QString* error = nullptr) const;
+
+	/** Checks that the map and every managed template are available locally. */
+	ProjectReadiness inspectProject(const QString& project_path, const MapProject& project) const;
+
+	/** Copies a complete project to a shareable .mapperproject directory. */
+	bool exportProject(const QString& project_path, const QString& destination_root,
+	                   QString& exported_path, QString* error = nullptr) const;
+
+	/** Imports a .mapperproject directory with a new local project ID. */
+	bool importProject(const QString& source_path, QString& imported_path,
+	                   QString* error = nullptr) const;
 
 	/** Returns valid project directories, newest first. */
 	QStringList projectPaths() const;

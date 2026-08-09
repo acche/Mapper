@@ -23,9 +23,11 @@
 #include <QDir>
 #include <QFile>
 #include <QFileInfo>
+#include <QDirIterator>
 #include <QJsonArray>
 #include <QJsonDocument>
 #include <QJsonObject>
+#include <QRegularExpression>
 #include <QSaveFile>
 #include <QStandardPaths>
 #include <QUuid>
@@ -49,6 +51,43 @@ bool isSafeRelativePath(const QString& path)
 	return cleaned != QLatin1String("..")
 	       && !cleaned.startsWith(QLatin1String("../"))
 	       && !cleaned.contains(QLatin1String("/../"));
+}
+
+bool copyDirectoryContents(const QString& source_path, const QString& destination_path,
+	                         const QString& excluded_root_file, QString* error)
+{
+	QDir source_dir(source_path);
+	QDir destination_dir(destination_path);
+	QDirIterator iterator(source_path, QDir::Dirs | QDir::Files | QDir::NoDotAndDotDot
+	                                 | QDir::NoSymLinks, QDirIterator::Subdirectories);
+	while (iterator.hasNext())
+	{
+		iterator.next();
+		const QFileInfo info = iterator.fileInfo();
+		const auto relative_path = source_dir.relativeFilePath(info.filePath());
+		if (relative_path == excluded_root_file)
+			continue;
+		const auto destination = destination_dir.filePath(relative_path);
+		if (info.isDir())
+		{
+			if (!QDir().mkpath(destination))
+			{
+				setError(error, QStringLiteral("Unable to create a directory while copying the project."));
+				return false;
+			}
+		}
+		else
+		{
+			if (!QDir().mkpath(QFileInfo(destination).absolutePath())
+			    || QFileInfo::exists(destination)
+			    || !QFile::copy(info.filePath(), destination))
+			{
+				setError(error, QStringLiteral("Unable to copy a file while copying the project."));
+				return false;
+			}
+		}
+	}
+	return true;
 }
 
 QDateTime readDate(const QJsonObject& json, const QString& key)
@@ -414,6 +453,171 @@ bool ProjectManager::backupProjectMap(const QString& project_path, const MapProj
 	  QStringList{QStringLiteral("map-*.%1").arg(suffix)}, QDir::Files, QDir::Time);
 	for (int index = maximum_backups; index < backups.size(); ++index)
 		QFile::remove(backups.at(index).filePath());
+	return true;
+}
+
+
+bool ProjectManager::importTemplateFile(const QString& project_path, MapProject& project,
+	                                      const QString& source_path, QString& imported_path,
+	                                      QString* error) const
+{
+	imported_path.clear();
+	const QFileInfo source(source_path);
+	if (!source.isFile() || !source.isReadable())
+	{
+		setError(error, QStringLiteral("The selected template file cannot be read."));
+		return false;
+	}
+	if (!project.isValid(error))
+		return false;
+
+	QDir template_dir(QDir(project_path).filePath(QStringLiteral("templates")));
+	if (!template_dir.mkpath(QStringLiteral(".")))
+	{
+		setError(error, QStringLiteral("Unable to create the project template directory."));
+		return false;
+	}
+
+	auto destination_name = source.fileName();
+	const auto base_name = source.completeBaseName();
+	const auto suffix = source.completeSuffix();
+	for (int number = 2; QFileInfo::exists(template_dir.filePath(destination_name)); ++number)
+		destination_name = suffix.isEmpty()
+		                   ? QStringLiteral("%1-%2").arg(base_name).arg(number)
+		                   : QStringLiteral("%1-%2.%3").arg(base_name).arg(number).arg(suffix);
+
+	const auto destination = template_dir.filePath(destination_name);
+	if (!QFile::copy(source.filePath(), destination))
+	{
+		setError(error, QStringLiteral("Unable to copy the template into the project."));
+		return false;
+	}
+
+	QStringList copied_files { destination };
+	const QStringList sidecar_suffixes {
+		QStringLiteral("wld"), QStringLiteral("tfw"), QStringLiteral("jgw"),
+		QStringLiteral("pgw"), QStringLiteral("prj")
+	};
+	for (const auto& sidecar_suffix : sidecar_suffixes)
+	{
+		const auto sidecar_source = source.dir().filePath(source.completeBaseName()
+		                                                   + QLatin1Char('.') + sidecar_suffix);
+		if (!QFileInfo(sidecar_source).isFile())
+			continue;
+		const auto sidecar_destination = template_dir.filePath(
+		  QFileInfo(destination_name).completeBaseName() + QLatin1Char('.') + sidecar_suffix);
+		if (QFile::copy(sidecar_source, sidecar_destination))
+			copied_files.append(sidecar_destination);
+	}
+
+	const auto relative_path = QDir(project_path).relativeFilePath(destination);
+	project.template_files.append(relative_path);
+	project.modified_at = QDateTime::currentDateTimeUtc();
+	if (!saveProject(project_path, project, error))
+	{
+		project.template_files.removeAll(relative_path);
+		for (const auto& copied_file : copied_files)
+			QFile::remove(copied_file);
+		return false;
+	}
+
+	imported_path = destination;
+	return true;
+}
+
+
+ProjectReadiness ProjectManager::inspectProject(const QString& project_path,
+	                                              const MapProject& project) const
+{
+	ProjectReadiness readiness;
+	readiness.map_available = QFileInfo(mapPath(project_path, project)).isFile();
+	readiness.georeferenced = project.bounds.defined && !project.crs_spec.isEmpty();
+	for (const auto& relative_path : project.template_files)
+	{
+		if (!QFileInfo(QDir(project_path).filePath(relative_path)).isFile())
+			readiness.missing_files.append(relative_path);
+	}
+	return readiness;
+}
+
+
+bool ProjectManager::exportProject(const QString& project_path, const QString& destination_root,
+	                                 QString& exported_path, QString* error) const
+{
+	exported_path.clear();
+	MapProject project;
+	if (!loadProject(project_path, project, error))
+		return false;
+	if (!inspectProject(project_path, project).isOfflineReady())
+	{
+		setError(error, QStringLiteral("The project has missing files and cannot be exported."));
+		return false;
+	}
+
+	QDir destination_dir(destination_root);
+	if (!destination_dir.exists() && !destination_dir.mkpath(QStringLiteral(".")))
+	{
+		setError(error, QStringLiteral("The export destination cannot be created."));
+		return false;
+	}
+	const auto source_canonical = QFileInfo(project_path).canonicalFilePath();
+	const auto destination_root_canonical = QFileInfo(destination_root).canonicalFilePath();
+	if (!source_canonical.isEmpty()
+	    && (destination_root_canonical == source_canonical
+	        || destination_root_canonical.startsWith(source_canonical + QDir::separator())))
+	{
+		setError(error, QStringLiteral("The export destination cannot be inside the project."));
+		return false;
+	}
+	QString safe_name = project.name.trimmed();
+	safe_name.replace(QRegularExpression(QStringLiteral("[\\\\/:*?\"<>|]")), QStringLiteral("-"));
+	if (safe_name.isEmpty())
+		safe_name = QStringLiteral("Mapper project");
+	QString directory_name = safe_name + QStringLiteral(".mapperproject");
+	for (int number = 2; QFileInfo::exists(destination_dir.filePath(directory_name)); ++number)
+		directory_name = QStringLiteral("%1-%2.mapperproject").arg(safe_name).arg(number);
+
+	const auto destination = destination_dir.filePath(directory_name);
+	if (!QDir().mkpath(destination)
+	    || !copyDirectoryContents(project_path, destination, QString(), error))
+	{
+		QDir(destination).removeRecursively();
+		if (error && error->isEmpty())
+			setError(error, QStringLiteral("Unable to create the project export."));
+		return false;
+	}
+	exported_path = destination;
+	return true;
+}
+
+
+bool ProjectManager::importProject(const QString& source_path, QString& imported_path,
+	                                 QString* error) const
+{
+	imported_path.clear();
+	ProjectManager source_manager;
+	MapProject project;
+	if (!source_manager.loadProject(source_path, project, error))
+		return false;
+	if (!source_manager.inspectProject(source_path, project).isOfflineReady())
+	{
+		setError(error, QStringLiteral("The imported project has missing files."));
+		return false;
+	}
+
+	project.id = QUuid::createUuid().toString(QUuid::WithoutBraces);
+	project.created_at = QDateTime::currentDateTimeUtc();
+	project.modified_at = project.created_at;
+	QString destination;
+	if (!createProject(project, destination, error))
+		return false;
+	if (!copyDirectoryContents(source_path, destination, manifestFileName(), error)
+	    || !saveProject(destination, project, error))
+	{
+		QDir(destination).removeRecursively();
+		return false;
+	}
+	imported_path = destination;
 	return true;
 }
 

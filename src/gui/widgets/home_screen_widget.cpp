@@ -348,6 +348,12 @@ HomeScreenWidgetMobile::HomeScreenWidgetMobile(HomeScreenController* controller,
 	connect(new_project_button, &QPushButton::clicked,
 	        controller->getWindow(), &MainWindow::showNewProjectWizard);
 	layout->addWidget(new_project_button);
+	auto* import_project_button = new QPushButton(tr("Import a mapping project"));
+	import_project_button->setIcon(QIcon(QStringLiteral(":/images/open.png")));
+	import_project_button->setMinimumHeight(48);
+	connect(import_project_button, &QPushButton::clicked,
+	        controller->getWindow(), &MainWindow::showImportProjectDialog);
+	layout->addWidget(import_project_button);
 	
 	file_list_widget = makeFileListWidget();
 	connect(file_list_widget, &QListWidget::itemClicked, this, &HomeScreenWidgetMobile::itemClicked);
@@ -536,7 +542,15 @@ void HomeScreenWidgetMobile::updateFileListWidget()
 			const QFileInfo map_info(project_manager.mapPath(project_path, project));
 			if (!map_info.isFile())
 				continue;
-			addItemToFileList(project.name, map_info);
+			const auto readiness = project_manager.inspectProject(project_path, project);
+			QString status;
+			if (!readiness.isOfflineReady())
+				status = tr("files missing");
+			else if (!readiness.georeferenced)
+				status = tr("location not set");
+			else
+				status = tr("offline ready");
+			addItemToFileList(tr("%1 — %2").arg(project.name, status), map_info);
 			listed_files.insert(map_info.canonicalFilePath());
 		}
 

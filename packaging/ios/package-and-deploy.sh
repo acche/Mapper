@@ -29,8 +29,10 @@ cp $ROOT/ios-build/icon/AppIcon83.5x83.5@2x~ipad.png "$APP/"
 
 # Data: symbol sets + translations + licensing docs
 mkdir -p "$APP/data/symbol sets" "$APP/data/translations" "$APP/data/doc"
-cp "$BUILD/symbol sets"/*.omap "$APP/data/symbol sets/" 2>/dev/null || true
-cp "$ROOT/mapper/symbol sets"/*.omap "$APP/data/symbol sets/" 2>/dev/null || true
+# Preserve scale subdirectories (4000/, 10000/, ...), which the new-project
+# catalog uses to resolve the bundled symbol sets.
+rsync -a --include='*/' --include='*.omap' --exclude='*' \
+  "$ROOT/mapper/symbol sets/" "$APP/data/symbol sets/"
 cp "$BUILD/translations"/*.qm "$APP/data/translations/" 2>/dev/null || true
 
 # PROJ + GDAL runtime data

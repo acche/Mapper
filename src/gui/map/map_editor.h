@@ -836,6 +836,7 @@ private:
 	QMenu* mappart_move_menu;
 	
 	QAction* import_act = {};
+	QAction* export_project_act = {};
 	
 	QFrame* statusbar_zoom_frame;
 	QLabel* statusbar_cursorpos_label;

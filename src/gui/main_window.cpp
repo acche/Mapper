@@ -25,6 +25,7 @@
 #include <QCloseEvent>
 #include <QDialogButtonBox>
 #include <QDesktopServices>
+#include <QDateTime>
 #include <QDir>
 #include <QFileDialog>
 #include <QLabel>
@@ -985,6 +986,55 @@ void MainWindow::showNewProjectWizard()
 	num_open_files++;
 }
 
+void MainWindow::showImportProjectDialog()
+{
+	const auto source_path = QFileDialog::getExistingDirectory(
+	  this, tr("Import mapping project"), QDir::homePath());
+	if (source_path.isEmpty())
+		return;
+
+	ProjectManager manager;
+	QString project_path;
+	QString error;
+	if (!manager.importProject(source_path, project_path, &error))
+	{
+		QMessageBox::warning(this, tr("Error"), tr("Cannot import project:\n%1").arg(error));
+		return;
+	}
+	MapProject project;
+	if (manager.loadProject(project_path, project, &error))
+		openPath(manager.mapPath(project_path, project));
+}
+
+void MainWindow::showExportProjectDialog()
+{
+	const auto project_path = QFileInfo(currentPath()).absolutePath();
+	ProjectManager manager;
+	MapProject project;
+	QString error;
+	if (!manager.loadProject(project_path, project, &error))
+	{
+		QMessageBox::information(this, tr("Export project"),
+		                         tr("The current map is not part of a managed mapping project."));
+		return;
+	}
+	if (hasUnsavedChanges() && !save())
+		return;
+
+	const auto destination = QFileDialog::getExistingDirectory(
+	  this, tr("Choose project export destination"), QDir::homePath());
+	if (destination.isEmpty())
+		return;
+	QString exported_path;
+	if (!manager.exportProject(project_path, destination, exported_path, &error))
+	{
+		QMessageBox::warning(this, tr("Error"), tr("Cannot export project:\n%1").arg(error));
+		return;
+	}
+	QMessageBox::information(this, tr("Project exported"),
+	                         tr("The complete project was exported to:\n%1").arg(exported_path));
+}
+
 void MainWindow::showOpenDialog()
 {
 	if (auto selected = getOpenFileName(this, tr("Open file"), FileFormat::AllFiles))
@@ -1290,11 +1340,13 @@ bool MainWindow::saveTo(const QString &path, const FileFormat& format)
 	const auto project_path = QFileInfo(path).absolutePath();
 	ProjectManager project_manager;
 	MapProject project;
+	bool managed_project = false;
 	if (path == currentPath()
 	    && project_manager.loadProject(project_path, project)
 	    && QFileInfo(project_manager.mapPath(project_path, project)).canonicalFilePath()
 	       == QFileInfo(path).canonicalFilePath())
 	{
+		managed_project = true;
 		QString backup_error;
 		if (!project_manager.backupProjectMap(project_path, project, 10, &backup_error))
 		{
@@ -1306,6 +1358,15 @@ bool MainWindow::saveTo(const QString &path, const FileFormat& format)
 	
 	if (!controller->saveTo(path, format))
 		return false;
+	if (managed_project)
+	{
+		project.modified_at = QDateTime::currentDateTimeUtc();
+		QString manifest_error;
+		if (!project_manager.saveProject(project_path, project, &manifest_error))
+			QMessageBox::warning(this, tr("Project warning"),
+			                     tr("The map was saved, but the project metadata could not be updated:\n%1")
+			                     .arg(manifest_error));
+	}
 	
 	setMostRecentlyUsedFile(path);
 	

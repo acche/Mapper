@@ -308,6 +308,12 @@ public slots:
 
 	/** Creates and opens a self-contained project using a touch-friendly wizard. */
 	void showNewProjectWizard();
+
+	/** Imports a self-contained .mapperproject directory and opens it. */
+	void showImportProjectDialog();
+
+	/** Exports the current self-contained project to a shareable directory. */
+	void showExportProjectDialog();
 	
 	/**
 	 * Show a file-open dialog and load the select file.

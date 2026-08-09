@@ -142,6 +142,98 @@ void MapProjectTest::createsAndPrunesBackups()
 	QCOMPARE(backup_dir.entryList(QStringList{QStringLiteral("map-*.omap")}, QDir::Files).size(), 2);
 }
 
+void MapProjectTest::importsTemplateAndSidecar()
+{
+	QTemporaryDir temporary;
+	QVERIFY(temporary.isValid());
+	ProjectManager manager(QDir(temporary.path()).filePath(QStringLiteral("projects")));
+	auto project = manager.makeProject(QStringLiteral("Imported base map"), 4000,
+	                                   QStringLiteral("sprint"), QString());
+	QString project_path;
+	QString error;
+	QVERIFY2(manager.createProject(project, project_path, &error), qPrintable(error));
+
+	const auto source_dir = QDir(temporary.path()).filePath(QStringLiteral("source"));
+	QVERIFY(QDir().mkpath(source_dir));
+	for (const auto& filename : { QStringLiteral("campus.png"), QStringLiteral("campus.pgw") })
+	{
+		QFile file(QDir(source_dir).filePath(filename));
+		QVERIFY(file.open(QIODevice::WriteOnly));
+		QVERIFY(file.write("test") > 0);
+	}
+
+	QString imported_path;
+	QVERIFY2(manager.importTemplateFile(project_path, project,
+	                                   QDir(source_dir).filePath(QStringLiteral("campus.png")),
+	                                   imported_path, &error), qPrintable(error));
+	QVERIFY(QFileInfo(imported_path).isFile());
+	QVERIFY(QFileInfo(QDir(project_path).filePath(QStringLiteral("templates/campus.pgw"))).isFile());
+	QCOMPARE(project.template_files, QStringList{QStringLiteral("templates/campus.png")});
+
+	MapProject loaded;
+	QVERIFY(manager.loadProject(project_path, loaded));
+	QCOMPARE(loaded.template_files, project.template_files);
+}
+
+void MapProjectTest::checksOfflineReadiness()
+{
+	QTemporaryDir temporary;
+	ProjectManager manager(temporary.path());
+	auto project = manager.makeProject(QStringLiteral("Offline map"), 4000,
+	                                   QStringLiteral("sprint"), QString());
+	QVERIFY(project.setLocation(39.9, 116.4, 4.0, 3.0));
+	project.template_files << QStringLiteral("templates/base.png");
+	QString project_path;
+	QVERIFY(manager.createProject(project, project_path));
+
+	auto readiness = manager.inspectProject(project_path, project);
+	QVERIFY(!readiness.map_available);
+	QVERIFY(readiness.georeferenced);
+	QCOMPARE(readiness.missing_files, project.template_files);
+
+	for (const auto& relative_path : { project.map_file, project.template_files.front() })
+	{
+		QFile file(QDir(project_path).filePath(relative_path));
+		QVERIFY(file.open(QIODevice::WriteOnly));
+		file.close();
+	}
+	readiness = manager.inspectProject(project_path, project);
+	QVERIFY(readiness.isOfflineReady());
+	QVERIFY(readiness.georeferenced);
+}
+
+void MapProjectTest::exportsAndImportsProject()
+{
+	QTemporaryDir temporary;
+	const auto projects_root = QDir(temporary.path()).filePath(QStringLiteral("projects"));
+	ProjectManager manager(projects_root);
+	auto project = manager.makeProject(QStringLiteral("School / park"), 4000,
+	                                   QStringLiteral("sprint"), QString());
+	QString project_path;
+	QVERIFY(manager.createProject(project, project_path));
+	QFile map_file(manager.mapPath(project_path, project));
+	QVERIFY(map_file.open(QIODevice::WriteOnly));
+	QVERIFY(map_file.write("map data") > 0);
+	map_file.close();
+
+	QString exported_path;
+	QVERIFY(!manager.exportProject(project_path, project_path, exported_path));
+	QVERIFY(manager.exportProject(project_path,
+	                              QDir(temporary.path()).filePath(QStringLiteral("exports")),
+	                              exported_path));
+	QVERIFY(exported_path.endsWith(QStringLiteral("School - park.mapperproject")));
+	QVERIFY(QFileInfo(QDir(exported_path).filePath(QStringLiteral("project.json"))).isFile());
+
+	QDir(project_path).removeRecursively();
+	QString imported_path;
+	QVERIFY(manager.importProject(exported_path, imported_path));
+	MapProject imported;
+	QVERIFY(manager.loadProject(imported_path, imported));
+	QCOMPARE(imported.name, project.name);
+	QVERIFY(imported.id != project.id);
+	QVERIFY(manager.inspectProject(imported_path, imported).isOfflineReady());
+}
+
 QTEST_GUILESS_MAIN(MapProjectTest)
 
 #include "moc_map_project_t.cpp"

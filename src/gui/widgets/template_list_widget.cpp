@@ -80,6 +80,7 @@
 #include "settings.h"
 #include "core/georeferencing.h"
 #include "core/map.h"
+#include "core/map_project.h"
 #include "fileformats/file_format_registry.h"
 #include "fileformats/file_import_export.h"
 #include "gui/file_dialog.h"
@@ -662,6 +663,34 @@ std::unique_ptr<Template> TemplateListWidget::showOpenTemplateDialog(QWidget* di
 		if (new_temp->getTemplateState() == Template::Invalid && error.isEmpty())
 			error = tr("Failed to load template. Does the file exist and is it valid?");
 		new_temp.reset();
+	}
+	else
+	{
+		// A project must remain self-contained when the original file is removed
+		// from the device or becomes unavailable to the app sandbox.
+		const auto project_path = QFileInfo(controller.getWindow()->currentPath()).absolutePath();
+		ProjectManager project_manager;
+		MapProject project;
+		const auto templates_path = QFileInfo(QDir(project_path).filePath(QStringLiteral("templates")))
+		                            .canonicalFilePath() + QDir::separator();
+		const auto source_path = QFileInfo(new_temp->getTemplatePath()).canonicalFilePath();
+		if (project_manager.loadProject(project_path, project)
+		    && !source_path.startsWith(templates_path))
+		{
+			QString imported_path;
+			QString import_error;
+			if (project_manager.importTemplateFile(project_path, project, path,
+			                                      imported_path, &import_error))
+			{
+				new_temp->switchTemplateFile(imported_path, true);
+			}
+			else
+			{
+				QMessageBox::warning(dialog_parent, tr("Project import warning"),
+				                     tr("The template was opened, but could not be copied into the project:\n%1")
+				                     .arg(import_error));
+			}
+		}
 	}
 	
 	if (!error.isEmpty())
