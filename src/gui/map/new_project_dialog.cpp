@@ -19,6 +19,14 @@
 #include <QPushButton>
 #include <QVBoxLayout>
 
+#if defined(QT_POSITIONING_LIB)
+#  include <QGeoCoordinate>
+#  include <QGeoPositionInfo>
+#  include <QGeoPositionInfoSource>
+#endif
+
+#include "core/app_permissions.h"
+
 namespace OpenOrienteering {
 
 namespace {
@@ -42,6 +50,8 @@ NewProjectDialog::NewProjectDialog(QWidget* parent)
 , longitude_edit(new QDoubleSpinBox(this))
 , width_edit(new QDoubleSpinBox(this))
 , height_edit(new QDoubleSpinBox(this))
+, current_location_button(new QPushButton(tr("Use current location"), this))
+, position_source(nullptr)
 , buttons(new QDialogButtonBox(QDialogButtonBox::Cancel | QDialogButtonBox::Ok, this))
 {
 	setWindowTitle(tr("Create mapping project"));
@@ -87,8 +97,11 @@ NewProjectDialog::NewProjectDialog(QWidget* parent)
 	form->addRow(tr("Longitude (WGS84):"), longitude_edit);
 	form->addRow(tr("Area width:"), width_edit);
 	form->addRow(tr("Area height:"), height_edit);
+	current_location_button->setMinimumHeight(44);
+	form->addRow(QString(), current_location_button);
 	for (auto* input : { latitude_edit, longitude_edit, width_edit, height_edit })
 		input->setEnabled(false);
+	current_location_button->setEnabled(false);
 
 	auto* explanation = new QLabel(
 	  tr("Mapper will create a project folder, load the matching symbol set, "
@@ -106,7 +119,10 @@ NewProjectDialog::NewProjectDialog(QWidget* parent)
 	connect(location_check, &QCheckBox::toggled, this, [this](bool enabled) {
 		for (auto* input : { latitude_edit, longitude_edit, width_edit, height_edit })
 			input->setEnabled(enabled);
+		current_location_button->setEnabled(enabled);
 	});
+	connect(current_location_button, &QPushButton::clicked,
+	        this, &NewProjectDialog::requestCurrentLocation);
 	connect(buttons, &QDialogButtonBox::accepted, this, &QDialog::accept);
 	connect(buttons, &QDialogButtonBox::rejected, this, &QDialog::reject);
 	updateState();
@@ -190,6 +206,53 @@ double NewProjectDialog::areaHeightKm() const
 void NewProjectDialog::updateState()
 {
 	buttons->button(QDialogButtonBox::Ok)->setEnabled(!projectName().isEmpty());
+}
+
+
+void NewProjectDialog::requestCurrentLocation()
+{
+#if defined(Q_OS_ANDROID)
+	if (AppPermissions::checkPermission(AppPermissions::LocationAccess) != AppPermissions::Granted)
+	{
+		AppPermissions::requestPermission(AppPermissions::LocationAccess,
+		                                  this, &NewProjectDialog::requestCurrentLocation);
+		return;
+	}
+#endif
+
+#if defined(QT_POSITIONING_LIB)
+	if (!position_source)
+	{
+		position_source = QGeoPositionInfoSource::createDefaultSource(this);
+		if (position_source)
+		{
+			connect(position_source, &QGeoPositionInfoSource::positionUpdated,
+			        this, [this](const QGeoPositionInfo& position) {
+				const auto coordinate = position.coordinate();
+				if (coordinate.isValid())
+				{
+					latitude_edit->setValue(coordinate.latitude());
+					longitude_edit->setValue(coordinate.longitude());
+					current_location_button->setText(tr("Location updated"));
+				}
+				current_location_button->setEnabled(true);
+			});
+			connect(position_source, &QGeoPositionInfoSource::errorOccurred,
+			        this, [this](QGeoPositionInfoSource::Error) {
+				current_location_button->setText(tr("Location unavailable — try again"));
+				current_location_button->setEnabled(true);
+			});
+		}
+	}
+	if (position_source)
+	{
+		current_location_button->setText(tr("Finding location..."));
+		current_location_button->setEnabled(false);
+		position_source->requestUpdate(15000);
+		return;
+	}
+#endif
+	current_location_button->setText(tr("Location service unavailable"));
 }
 
 }  // namespace OpenOrienteering

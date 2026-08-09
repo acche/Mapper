@@ -15,6 +15,8 @@ class QCheckBox;
 class QDialogButtonBox;
 class QDoubleSpinBox;
 class QLineEdit;
+class QPushButton;
+class QGeoPositionInfoSource;
 
 namespace OpenOrienteering {
 
@@ -39,6 +41,7 @@ public:
 
 private slots:
 	void updateState();
+	void requestCurrentLocation();
 
 private:
 	QLineEdit* name_edit;
@@ -48,6 +51,8 @@ private:
 	QDoubleSpinBox* longitude_edit;
 	QDoubleSpinBox* width_edit;
 	QDoubleSpinBox* height_edit;
+	QPushButton* current_location_button;
+	QGeoPositionInfoSource* position_source;
 	QDialogButtonBox* buttons;
 };
 
