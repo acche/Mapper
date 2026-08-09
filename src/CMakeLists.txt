@@ -102,6 +102,7 @@ set(Mapper_Common_SRCS
   core/map_information.cpp
   core/map_part.cpp
   core/map_printer.cpp
+  core/map_project.cpp
   core/map_view.cpp
   core/path_coord.cpp
   core/storage_location.cpp
@@ -166,6 +167,7 @@ set(Mapper_Common_SRCS
   gui/util_gui.cpp
   
   gui/map/new_map_dialog.cpp
+  gui/map/new_project_dialog.cpp
   gui/map/map_dialog_scale.cpp
   gui/map/map_editor.cpp
   gui/map/map_editor_activity.cpp

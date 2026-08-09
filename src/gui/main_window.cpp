@@ -49,6 +49,9 @@
 #include "mapper_config.h"
 #include "settings.h"
 #include "core/map.h"
+#include "core/georeferencing.h"
+#include "core/latlon.h"
+#include "core/map_project.h"
 #include "core/map_view.h"
 #include "core/symbols/symbol.h"
 #include "fileformats/file_format.h"
@@ -62,6 +65,7 @@
 #include "gui/util_gui.h"
 #include "gui/map/map_editor.h"
 #include "gui/map/new_map_dialog.h"
+#include "gui/map/new_project_dialog.h"
 #include "gui/widgets/toast.h"
 #include "undo/undo_manager.h"
 #include "util/util.h"
@@ -880,6 +884,107 @@ void MainWindow::showNewMapWizard()
 	num_open_files++;
 }
 
+void MainWindow::showNewProjectWizard()
+{
+	NewProjectDialog dialog(this);
+	dialog.setWindowModality(Qt::WindowModal);
+	if (dialog.exec() != QDialog::Accepted)
+		return;
+
+	const auto symbol_set_path = dialog.symbolSetPath();
+	if (symbol_set_path.isEmpty())
+	{
+		QMessageBox::warning(this, tr("Error"),
+		                     tr("The symbol set required for this project is not installed."));
+		return;
+	}
+
+	ProjectManager project_manager;
+	auto project = project_manager.makeProject(dialog.projectName(), dialog.scale(),
+	                                           dialog.presetId(), dialog.symbolSetId());
+	QString project_path;
+	QString error;
+	if (dialog.hasLocation()
+	    && !project.setLocation(dialog.latitude(), dialog.longitude(),
+	                            dialog.areaWidthKm(), dialog.areaHeightKm(), &error))
+	{
+		QMessageBox::warning(this, tr("Error"), tr("Cannot create project:\n%1").arg(error));
+		return;
+	}
+	if (!project_manager.createProject(project, project_path, &error))
+	{
+		QMessageBox::warning(this, tr("Error"), tr("Cannot create project:\n%1").arg(error));
+		return;
+	}
+
+	auto* new_map = new Map();
+	auto* map_view = new MapView(nullptr, new_map);
+	auto importer = FileFormats.makeImporter(symbol_set_path, *new_map, nullptr);
+	if (!importer)
+	{
+		error = tr("The selected symbol set cannot be read.");
+	}
+	else
+	{
+		importer->setLoadSymbolsOnly(true);
+		if (!importer->doImport())
+			error = importer->warnings().empty() ? tr("The symbol set import failed.")
+			                                      : importer->warnings().back();
+	}
+
+	const auto* format = FileFormats.findFormat(FileFormats.defaultFormat());
+	const auto map_path = project_manager.mapPath(project_path, project);
+	if (error.isEmpty() && (!format || !format->supportsWriting()))
+		error = tr("The default map format is unavailable.");
+	if (error.isEmpty())
+	{
+		new_map->setScaleDenominator(dialog.scale());
+		if (dialog.hasLocation())
+		{
+			Georeferencing georef(new_map->getGeoreferencing());
+			georef.setScaleDenominator(static_cast<int>(dialog.scale()));
+			if (!georef.setProjectedCRS(QStringLiteral("UTM"), project.crs_spec))
+				error = georef.getErrorText();
+			else
+			{
+				georef.setMapRefPoint(MapCoord(0, 0));
+				georef.setGeographicRefPoint(LatLon(dialog.latitude(), dialog.longitude()));
+				new_map->setGeoreferencing(georef);
+			}
+		}
+	}
+	if (error.isEmpty())
+	{
+		auto exporter = format->makeExporter(map_path, new_map, map_view);
+		if (!exporter || !exporter->doExport())
+			error = !exporter || exporter->warnings().empty()
+			        ? tr("The initial map could not be saved.")
+			        : exporter->warnings().back();
+	}
+
+	if (!error.isEmpty())
+	{
+		delete map_view;
+		delete new_map;
+		QDir(project_path).removeRecursively();
+		QMessageBox::warning(this, tr("Error"), tr("Cannot create project:\n%1").arg(error));
+		return;
+	}
+
+	new_map->setHasUnsavedChanges(false);
+	new_map->undoManager().clear();
+	MainWindow* new_window = hasOpenedFile() ? new MainWindow() : this;
+	const auto ignore_touch = Settings::getInstance().getSetting(Settings::MapEditor_IgnoreTouchInput).toBool();
+	new_window->warnAndSetIgnoreTouch(ignore_touch);
+	new_window->setController(
+	  new MapEditorController(MapEditorController::MapEditor, new_map, map_view), map_path, format);
+	new_window->setMostRecentlyUsedFile(map_path);
+	new_window->show();
+	new_window->raise();
+	new_window->activateWindow();
+	num_open_files++;
+}
+
 void MainWindow::showOpenDialog()
 {
 	if (auto selected = getOpenFileName(this, tr("Open file"), FileFormat::AllFiles))
@@ -1179,6 +1284,24 @@ bool MainWindow::saveTo(const QString &path, const FileFormat& format)
 		int result = QMessageBox::warning(this, tr("Warning"), message, QMessageBox::Yes, QMessageBox::No);
 		if (result != QMessageBox::Yes)
 			return showSaveAsDialog();
+	}
+
+	// Project maps get a versioned safety copy before they are overwritten.
+	const auto project_path = QFileInfo(path).absolutePath();
+	ProjectManager project_manager;
+	MapProject project;
+	if (path == currentPath()
+	    && project_manager.loadProject(project_path, project)
+	    && QFileInfo(project_manager.mapPath(project_path, project)).canonicalFilePath()
+	       == QFileInfo(path).canonicalFilePath())
+	{
+		QString backup_error;
+		if (!project_manager.backupProjectMap(project_path, project, 10, &backup_error))
+		{
+			QMessageBox::warning(this, tr("Backup warning"),
+			                     tr("The project could not be backed up before saving:\n%1")
+			                     .arg(backup_error));
+		}
 	}
 	
 	if (!controller->saveTo(path, format))

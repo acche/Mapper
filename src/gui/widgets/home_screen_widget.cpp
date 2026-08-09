@@ -32,11 +32,13 @@
 #include <QMessageBox>
 #include <QPainter>
 #include <QScroller>
+#include <QSet>
 #include <QSettings>
 #include <QVBoxLayout>
 
 #include "settings.h"
 #include "core/app_permissions.h"
+#include "core/map_project.h"
 #include "core/storage_location.h" // IWYU pragma: keep
 #include "fileformats/file_format_registry.h"
 #include "gui/home_screen_controller.h"
@@ -339,6 +341,13 @@ HomeScreenWidgetMobile::HomeScreenWidgetMobile(HomeScreenController* controller,
 	title_label->setPixmap(title_pixmap);
 	title_label->setAlignment(Qt::AlignCenter);
 	layout->addWidget(title_label);
+
+	auto* new_project_button = new QPushButton(tr("Create a new mapping project"));
+	new_project_button->setIcon(QIcon(QStringLiteral(":/images/new.png")));
+	new_project_button->setMinimumHeight(48);
+	connect(new_project_button, &QPushButton::clicked,
+	        controller->getWindow(), &MainWindow::showNewProjectWizard);
+	layout->addWidget(new_project_button);
 	
 	file_list_widget = makeFileListWidget();
 	connect(file_list_widget, &QListWidget::itemClicked, this, &HomeScreenWidgetMobile::itemClicked);
@@ -516,13 +525,28 @@ void HomeScreenWidgetMobile::updateFileListWidget()
 	if (history.empty())
 	{
 		// First screen.
-		// Recent files first.
+		// App-managed projects first, even when the recent-files list was cleared.
+		QSet<QString> listed_files;
+		ProjectManager project_manager;
+		for (const auto& project_path : project_manager.projectPaths())
+		{
+			MapProject project;
+			if (!project_manager.loadProject(project_path, project))
+				continue;
+			const QFileInfo map_info(project_manager.mapPath(project_path, project));
+			if (!map_info.isFile())
+				continue;
+			addItemToFileList(project.name, map_info);
+			listed_files.insert(map_info.canonicalFilePath());
+		}
+
+		// Recent standalone maps next.
 		Settings& settings = Settings::getInstance();
 		auto recent_files = settings.getSetting(Settings::General_RecentFilesList).toStringList();
 		for (auto& file_path : recent_files)
 		{
 			auto file_info = QFileInfo(file_path);
-			if (file_info.exists())
+			if (file_info.exists() && !listed_files.contains(file_info.canonicalFilePath()))
 				addItemToFileList(file_info);
 		}
 		

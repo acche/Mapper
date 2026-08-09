@@ -305,6 +305,9 @@ public slots:
 	 * May open a new main window.
 	 */
 	void showNewMapWizard();
+
+	/** Creates and opens a self-contained project using a touch-friendly wizard. */
+	void showNewProjectWizard();
 	
 	/**
 	 * Show a file-open dialog and load the select file.
