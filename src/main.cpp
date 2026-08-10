@@ -27,6 +27,9 @@
 #include <Qt>
 #include <QtGlobal>
 #include <QtPlugin>  // IWYU pragma: keep
+#if defined(Q_OS_IOS) && defined(Q_PROCESSOR_X86_64)
+#  include <QAccessible>
+#endif
 #include <QApplication>
 #include <QCoreApplication>
 #include <QGuiApplication>
@@ -138,6 +141,15 @@ int main(int argc, char** argv)
 	}
 #else
 	QApplication qapp(argc, argv);
+#endif
+
+#if defined(Q_OS_IOS) && defined(Q_PROCESSOR_X86_64)
+	// The x86_64 iOS simulator runs through Rosetta on Apple Silicon. Qt's
+	// iOS accessibility bridge can retain widget interfaces while widgets are
+	// being destroyed, causing crashes in QAccessibleButton::role(). Native
+	// Native arm64 device and simulator builds are deliberately unaffected.
+	QAccessible::setActive(false);
+	QAccessible::installUpdateHandler([](QAccessibleEvent*) {});
 #endif
 	
 #ifdef Q_OS_ANDROID
