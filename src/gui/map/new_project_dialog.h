@@ -10,7 +10,6 @@
 #include <QDialog>
 #include <QString>
 
-class QComboBox;
 class QCheckBox;
 class QDialogButtonBox;
 class QDoubleSpinBox;
@@ -29,10 +28,6 @@ public:
 	explicit NewProjectDialog(QWidget* parent = nullptr);
 
 	QString projectName() const;
-	QString presetId() const;
-	QString symbolSetId() const;
-	QString symbolSetPath() const;
-	unsigned int scale() const;
 	bool hasLocation() const;
 	double latitude() const;
 	double longitude() const;
@@ -46,7 +41,6 @@ private slots:
 
 private:
 	QLineEdit* name_edit;
-	QComboBox* preset_combo;
 	QCheckBox* location_check;
 	QDoubleSpinBox* latitude_edit;
 	QDoubleSpinBox* longitude_edit;

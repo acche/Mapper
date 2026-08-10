@@ -25,18 +25,21 @@ delete the old app until you have copied your work out of its Mapper folder.
 No desktop computer or pre-existing map file is required.
 
 1. Open Mapper and tap **Create a new mapping project**.
-2. Enter a project name and choose the map type. The map type supplies the
-   initial map scale and bundled symbol set, for example ISSprOM for a sprint
-   map or ISOM for a forest map.
-3. To initialize georeferencing, enable **Set the mapping area now**. Enter a
+2. Enter a project name. To initialize georeferencing, enable **Set the mapping
+   area now**. Enter a
    WGS84 latitude and longitude, or tap **Use current location**, then set the
    approximate width and height of the mapping area. Mapper creates a suitable
    UTM coordinate reference system for the location.
-4. Leave **Import a base map after creating the project** enabled if imagery or
+3. Leave **Import a base map after creating the project** enabled if imagery or
    another map is ready in the Files app.
-5. Tap **Create project**. Mapper creates the project directory, initializes
+4. Tap **Next**.
+5. Choose the map scale and an item from the complete bundled symbol-set
+   catalog. Enable **Only show symbol sets matching the selected scale** to
+   shorten the list. You may also choose **Empty symbol set** or **Load symbol
+   set from a file...** to select a custom `.omap` from Files.
+6. Tap **Create**. Mapper creates the project directory, initializes
    the `.omap` file with the selected symbol set, and saves it automatically.
-6. If base-map import was enabled, choose the image or map in the iPadOS file
+7. If base-map import was enabled, choose the image or map in the iPadOS file
    picker and complete the positioning dialog described below.
 
 The project is listed on Mapper's start screen. A managed project keeps its

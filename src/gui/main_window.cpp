@@ -892,17 +892,19 @@ void MainWindow::showNewProjectWizard()
 	if (dialog.exec() != QDialog::Accepted)
 		return;
 
-	const auto symbol_set_path = dialog.symbolSetPath();
-	if (symbol_set_path.isEmpty())
-	{
-		QMessageBox::warning(this, tr("Error"),
-		                     tr("The symbol set required for this project is not installed."));
+	NewMapDialog map_dialog(this);
+	map_dialog.setWindowModality(Qt::WindowModal);
+	if (map_dialog.exec() != QDialog::Accepted)
 		return;
-	}
+	const auto scale = map_dialog.getSelectedScale();
+	const auto symbol_set_path = map_dialog.getSelectedSymbolSetPath();
+	const auto symbol_set_id = symbol_set_path.isEmpty()
+	                           ? QStringLiteral("empty")
+	                           : QFileInfo(symbol_set_path).fileName();
 
 	ProjectManager project_manager;
-	auto project = project_manager.makeProject(dialog.projectName(), dialog.scale(),
-	                                           dialog.presetId(), dialog.symbolSetId());
+	auto project = project_manager.makeProject(dialog.projectName(), scale,
+	                                           QStringLiteral("custom"), symbol_set_id);
 	QString project_path;
 	QString error;
 	if (dialog.hasLocation()
@@ -920,17 +922,34 @@ void MainWindow::showNewProjectWizard()
 
 	auto* new_map = new Map();
 	auto* map_view = new MapView(nullptr, new_map);
-	auto importer = FileFormats.makeImporter(symbol_set_path, *new_map, nullptr);
-	if (!importer)
+	if (!symbol_set_path.isEmpty())
 	{
-		error = tr("The selected symbol set cannot be read.");
-	}
-	else
-	{
-		importer->setLoadSymbolsOnly(true);
-		if (!importer->doImport())
-			error = importer->warnings().empty() ? tr("The symbol set import failed.")
-			                                      : importer->warnings().back();
+		auto importer = FileFormats.makeImporter(symbol_set_path, *new_map, nullptr);
+		if (!importer)
+		{
+			error = tr("The selected symbol set cannot be read.");
+		}
+		else
+		{
+			importer->setLoadSymbolsOnly(true);
+			if (!importer->doImport())
+				error = importer->warnings().empty() ? tr("The symbol set import failed.")
+				                                      : importer->warnings().back();
+		}
+		if (error.isEmpty() && new_map->getScaleDenominator() != scale)
+		{
+			const auto answer = QMessageBox::question(
+			  this, tr("Warning"),
+			  tr("The selected map scale is 1:%1, but the chosen symbol set has a nominal scale of 1:%2.\n\n"
+			     "Do you want to scale the symbols to the selected scale?")
+			    .arg(scale).arg(new_map->getScaleDenominator()),
+			  QMessageBox::Yes | QMessageBox::No);
+			if (answer == QMessageBox::Yes)
+			{
+				const auto factor = double(new_map->getScaleDenominator()) / scale;
+				new_map->scaleAllSymbols(factor);
+			}
+		}
 	}
 
 	const auto* format = FileFormats.findFormat(FileFormats.defaultFormat());
@@ -939,11 +958,11 @@ void MainWindow::showNewProjectWizard()
 		error = tr("The default map format is unavailable.");
 	if (error.isEmpty())
 	{
-		new_map->setScaleDenominator(dialog.scale());
+		new_map->setScaleDenominator(scale);
 		if (dialog.hasLocation())
 		{
 			Georeferencing georef(new_map->getGeoreferencing());
-			georef.setScaleDenominator(static_cast<int>(dialog.scale()));
+			georef.setScaleDenominator(static_cast<int>(scale));
 			if (!georef.setProjectedCRS(QStringLiteral("UTM"), project.crs_spec))
 				error = georef.getErrorText();
 			else

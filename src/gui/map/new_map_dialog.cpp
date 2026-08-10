@@ -42,6 +42,7 @@
 #include <QListWidgetItem>
 #include <QPushButton>
 #include <QRegExp>
+#include <QScroller>
 #include <QSettings>
 #include <QSpacerItem>
 #include <QStringList>
@@ -52,6 +53,7 @@
 #include "fileformats/file_format_registry.h"
 #include "gui/file_dialog.h"
 #include "gui/util_gui.h"
+#include "settings.h"
 #include "util/util.h"
 
 // IWYU pragma: no_forward_declare QLabel
@@ -94,6 +96,18 @@ NewMapDialog::NewMapDialog(QWidget* parent) : QDialog(parent, Qt::WindowSystemMe
 	create_button->setIcon(QIcon(QString::fromLatin1(":/images/arrow-right.png")));
 	create_button->setText(tr("Create"));
 	layout->addWidget(button_box);
+
+	if (Settings::mobileModeEnforced())
+	{
+		setAttribute(Qt::WA_ContentsMarginsRespectsSafeArea, true);
+		setMinimumSize(420, 540);
+		scale_combo->setMinimumHeight(44);
+		symbol_set_list->setSpacing(4);
+		QScroller::grabGesture(symbol_set_list->viewport(), QScroller::TouchGesture);
+		symbol_set_matching->setMinimumHeight(44);
+		for (auto* button : button_box->buttons())
+			button->setMinimumHeight(44);
+	}
 	
 	setLayout(layout);
 	

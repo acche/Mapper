@@ -6,13 +6,10 @@
 
 #include "new_project_dialog.h"
 
-#include <QComboBox>
 #include <QCheckBox>
 #include <QDate>
 #include <QDialogButtonBox>
-#include <QDir>
 #include <QDoubleSpinBox>
-#include <QFileInfo>
 #include <QFormLayout>
 #include <QLabel>
 #include <QLineEdit>
@@ -29,22 +26,9 @@
 
 namespace OpenOrienteering {
 
-namespace {
-
-enum PresetRole
-{
-	PresetIdRole = Qt::UserRole,
-	ScaleRole,
-	SymbolSetRole
-};
-
-}  // namespace
-
-
 NewProjectDialog::NewProjectDialog(QWidget* parent)
 : QDialog(parent, Qt::WindowSystemMenuHint | Qt::WindowTitleHint)
 , name_edit(new QLineEdit(this))
-, preset_combo(new QComboBox(this))
 , location_check(new QCheckBox(tr("Set the mapping area now"), this))
 , latitude_edit(new QDoubleSpinBox(this))
 , longitude_edit(new QDoubleSpinBox(this))
@@ -61,28 +45,8 @@ NewProjectDialog::NewProjectDialog(QWidget* parent)
 	name_edit->setText(tr("Map %1").arg(QDate::currentDate().toString(Qt::ISODate)));
 	name_edit->selectAll();
 
-	auto add_preset = [this](const QString& title, const QString& id,
-	                         unsigned int denominator, const QString& symbol_set) {
-		preset_combo->addItem(title);
-		const auto index = preset_combo->count() - 1;
-		preset_combo->setItemData(index, id, PresetIdRole);
-		preset_combo->setItemData(index, denominator, ScaleRole);
-		preset_combo->setItemData(index, symbol_set, SymbolSetRole);
-	};
-	add_preset(tr("Sprint or school map — 1:4,000"),
-	           QStringLiteral("sprint"), 4000, QStringLiteral("ISSprOM 2019_4000.omap"));
-	add_preset(tr("Forest map — 1:10,000"),
-	           QStringLiteral("forest"), 10000, QStringLiteral("ISOM 2017-2_10000.omap"));
-	add_preset(tr("Mountain bike map — 1:10,000"),
-	           QStringLiteral("mtb"), 10000, QStringLiteral("ISMTBOM_10000.omap"));
-	add_preset(tr("Ski map — 1:10,000"),
-	           QStringLiteral("ski"), 10000, QStringLiteral("ISSkiOM 2019_10000.omap"));
-	add_preset(tr("Course planning — 1:10,000"),
-	           QStringLiteral("course"), 10000, QStringLiteral("Course_Design_10000.omap"));
-
 	auto* form = new QFormLayout();
 	form->addRow(tr("Project name:"), name_edit);
-	form->addRow(tr("Map type:"), preset_combo);
 	form->addRow(location_check);
 	latitude_edit->setRange(-80.0, 84.0);
 	longitude_edit->setRange(-180.0, 180.0);
@@ -108,11 +72,11 @@ NewProjectDialog::NewProjectDialog(QWidget* parent)
 	form->addRow(import_base_map_check);
 
 	auto* explanation = new QLabel(
-	  tr("Mapper will create a project folder, load the matching symbol set, "
-	     "and save the first map automatically. No desktop computer is required."), this);
+	  tr("Set up the project and mapping area. On the next screen, choose the "
+	     "map scale and symbol set. No desktop computer is required."), this);
 	explanation->setWordWrap(true);
 
-	buttons->button(QDialogButtonBox::Ok)->setText(tr("Create project"));
+	buttons->button(QDialogButtonBox::Ok)->setText(tr("Next"));
 	auto* layout = new QVBoxLayout(this);
 	layout->addWidget(explanation);
 	layout->addLayout(form);
@@ -136,44 +100,6 @@ NewProjectDialog::NewProjectDialog(QWidget* parent)
 QString NewProjectDialog::projectName() const
 {
 	return name_edit->text().trimmed();
-}
-
-
-QString NewProjectDialog::presetId() const
-{
-	return preset_combo->currentData(PresetIdRole).toString();
-}
-
-
-QString NewProjectDialog::symbolSetId() const
-{
-	return preset_combo->currentData(SymbolSetRole).toString();
-}
-
-
-QString NewProjectDialog::symbolSetPath() const
-{
-	const auto relative_path = QStringLiteral("symbol sets/%1/%2")
-	                           .arg(scale()).arg(symbolSetId());
-	for (const auto& data_path : QDir::searchPaths(QStringLiteral("data")))
-	{
-		auto path = QDir(data_path).filePath(relative_path);
-		if (QFileInfo::exists(path))
-			return path;
-
-		// Development builds deliberately rename writable symbol-set copies.
-		const auto file_info = QFileInfo(path);
-		path = file_info.dir().filePath(QStringLiteral("COPY_OF_") + file_info.fileName());
-		if (QFileInfo::exists(path))
-			return path;
-	}
-	return {};
-}
-
-
-unsigned int NewProjectDialog::scale() const
-{
-	return preset_combo->currentData(ScaleRole).toUInt();
 }
 
 
