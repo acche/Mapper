@@ -203,9 +203,10 @@ namespace {
 		
 		splitter->setAttribute(Qt::WA_NoSystemBackground, true);
 		placeholder->setAttribute(Qt::WA_NoSystemBackground, true);
+		child->setAttribute(Qt::WA_ContentsMarginsRespectsSafeArea, true);
 		child->setAutoFillBackground(true);
 		
-		auto geometry = window->geometry();
+		auto geometry = window->rect();
 		splitter->setGeometry(geometry);
 		if (geometry.height() > geometry.width())
 		{
@@ -2342,9 +2343,13 @@ void MapEditorController::openTemplateClicked()
 	auto new_template = TemplateListWidget::showOpenTemplateDialog(window, *this);
 	if (new_template)
 	{
+		const auto template_extent = new_template->calculateTemplateBoundingBox();
 		map->addTemplate(-1, std::move(new_template));
 		hideAllTemplates(false);
-		showTemplateWindow(true);
+		if (template_extent.isValid())
+			map_widget->adjustViewToRect(template_extent, MapWidget::ContinuousZoom);
+		if (!isInMobileMode())
+			showTemplateWindow(true);
 	}
 }
 

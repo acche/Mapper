@@ -322,7 +322,16 @@ TemplateListWidget::TemplateListWidget(Map& map, MapView& main_view, MapEditorCo
 	all_buttons_layout->addWidget(list_buttons_group);
 	all_buttons_layout->addWidget(new QLabel(QString::fromLatin1("   ")), 1);
 	
-	if (!mobile_mode)
+	if (mobile_mode)
+	{
+		auto* close_button = createToolButton(QIcon(QString::fromLatin1(":/images/close.png")),
+		                                      ::OpenOrienteering::MainWindow::tr("Close"));
+		close_button->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
+		close_button->setMinimumHeight(44);
+		all_buttons_layout->addWidget(close_button);
+		connect(close_button, &QAbstractButton::clicked, this, &TemplateListWidget::closeClicked);
+	}
+	else
 	{
 		auto help_button = createToolButton(QIcon(QString::fromLatin1(":/images/help.png")), tr("Help"));
 		help_button->setAutoRaise(true);
@@ -723,12 +732,18 @@ void TemplateListWidget::openTemplate()
 	auto new_template = showOpenTemplateDialog(window(), controller);
 	if (new_template)
 	{
+		const auto template_extent = new_template->calculateTemplateBoundingBox();
 		int pos = -1;
 		int row = currentRow();
 		if (row >= 0)
 			pos = posFromRow(row);
 		
 		map.addTemplate(pos, std::move(new_template));
+		controller.hideAllTemplates(false);
+		if (template_extent.isValid())
+			controller.getMainWidget()->adjustViewToRect(template_extent, MapWidget::ContinuousZoom);
+		if (mobile_mode)
+			emit closeClicked();
 	}
 }
 
