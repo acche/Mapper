@@ -51,6 +51,7 @@ NewProjectDialog::NewProjectDialog(QWidget* parent)
 , width_edit(new QDoubleSpinBox(this))
 , height_edit(new QDoubleSpinBox(this))
 , current_location_button(new QPushButton(tr("Use current location"), this))
+, import_base_map_check(new QCheckBox(tr("Import a base map after creating the project"), this))
 , position_source(nullptr)
 , buttons(new QDialogButtonBox(QDialogButtonBox::Cancel | QDialogButtonBox::Ok, this))
 {
@@ -102,6 +103,9 @@ NewProjectDialog::NewProjectDialog(QWidget* parent)
 	for (auto* input : { latitude_edit, longitude_edit, width_edit, height_edit })
 		input->setEnabled(false);
 	current_location_button->setEnabled(false);
+	import_base_map_check->setChecked(true);
+	import_base_map_check->setMinimumHeight(44);
+	form->addRow(import_base_map_check);
 
 	auto* explanation = new QLabel(
 	  tr("Mapper will create a project folder, load the matching symbol set, "
@@ -200,6 +204,12 @@ double NewProjectDialog::areaWidthKm() const
 double NewProjectDialog::areaHeightKm() const
 {
 	return height_edit->value();
+}
+
+
+bool NewProjectDialog::importBaseMap() const
+{
+	return import_base_map_check->isChecked();
 }
 
 

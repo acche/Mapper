@@ -36,6 +36,7 @@
 #include <QSettings>
 #include <QStackedWidget>
 #include <QStatusBar>
+#include <QTimer>
 #include <QToolBar>
 #include <QVBoxLayout>
 #include <QWhatsThis>
@@ -43,7 +44,6 @@
 #if defined(Q_OS_ANDROID)
 #  include <QtAndroid>
 #  include <QScreen>
-#  include <QTimer>
 #  include <QUrl>
 #endif
 
@@ -977,13 +977,15 @@ void MainWindow::showNewProjectWizard()
 	MainWindow* new_window = hasOpenedFile() ? new MainWindow() : this;
 	const auto ignore_touch = Settings::getInstance().getSetting(Settings::MapEditor_IgnoreTouchInput).toBool();
 	new_window->warnAndSetIgnoreTouch(ignore_touch);
-	new_window->setController(
-	  new MapEditorController(MapEditorController::MapEditor, new_map, map_view), map_path, format);
+	auto* editor = new MapEditorController(MapEditorController::MapEditor, new_map, map_view);
+	new_window->setController(editor, map_path, format);
 	new_window->setMostRecentlyUsedFile(map_path);
 	new_window->show();
 	new_window->raise();
 	new_window->activateWindow();
 	num_open_files++;
+	if (dialog.importBaseMap())
+		QTimer::singleShot(0, editor, &MapEditorController::openTemplateClicked);
 }
 
 void MainWindow::showImportProjectDialog()

@@ -906,6 +906,8 @@ void MapWidget::paintEvent(QPaintEvent* event)
 			showHelpMessage(&painter, tr("Empty map!\n\nStart by defining some colors:\nSelect Symbols -> Color window to\nopen the color dialog and\ndefine the colors there."));
 		else if (view->getMap()->getNumSymbols() == 0)
 			showHelpMessage(&painter, tr("No symbols!\n\nNow define some symbols:\nRight-click in the symbol bar\nand select \"New symbol\"\nto create one."));
+		else if (Settings::mobileModeEnforced())
+			showHelpMessage(&painter, tr("Ready to draw!\n\nStart drawing or load a base map.\nTo load a base map, open Templates,\ntap +, then tap Open base map...") + QLatin1String("\n\n") + tr("Hint: Drag with one finger and pinch to zoom."));
 		else
 			showHelpMessage(&painter, tr("Ready to draw!\n\nStart drawing or load a base map.\nTo load a base map, click\nTemplates -> Open template...") + QLatin1String("\n\n") + tr("Hint: Hold the middle mouse button to drag the map,\nzoom using the mouse wheel, if available."));
 		painter.restore();

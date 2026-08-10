@@ -38,6 +38,7 @@ public:
 	double longitude() const;
 	double areaWidthKm() const;
 	double areaHeightKm() const;
+	bool importBaseMap() const;
 
 private slots:
 	void updateState();
@@ -52,6 +53,7 @@ private:
 	QDoubleSpinBox* width_edit;
 	QDoubleSpinBox* height_edit;
 	QPushButton* current_location_button;
+	QCheckBox* import_base_map_check;
 	QGeoPositionInfoSource* position_source;
 	QDialogButtonBox* buttons;
 };

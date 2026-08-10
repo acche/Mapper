@@ -237,9 +237,10 @@ TemplateListWidget::TemplateListWidget(Map& map, MapView& main_view, MapEditorCo
 	all_templates_layout->addWidget(template_table, 1);
 	
 	auto* new_button_menu = new QMenu(this);
+	new_button_menu->addAction(QIcon(QString::fromLatin1(":/images/open.png")),
+	                           tr("Open base map..."), this, &TemplateListWidget::openTemplate);
 	if (!mobile_mode)
 	{
-		new_button_menu->addAction(QIcon(QString::fromLatin1(":/images/open.png")), tr("Open..."), this, &TemplateListWidget::openTemplate);
 		new_button_menu->addAction(controller.getAction("reopentemplate"));
 	}
 	duplicate_action = new_button_menu->addAction(QIcon(QString::fromLatin1(":/images/tool-duplicate.png")), tr("Duplicate"), this, &TemplateListWidget::duplicateTemplate);
