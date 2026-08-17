@@ -354,6 +354,12 @@ HomeScreenWidgetMobile::HomeScreenWidgetMobile(HomeScreenController* controller,
 	connect(import_project_button, &QPushButton::clicked,
 	        controller->getWindow(), &MainWindow::showImportProjectDialog);
 	layout->addWidget(import_project_button);
+	auto* open_map_button = new QPushButton(HomeScreenWidgetDesktop::tr("Open map ..."));
+	open_map_button->setIcon(QIcon(QStringLiteral(":/images/open.png")));
+	open_map_button->setMinimumHeight(48);
+	connect(open_map_button, &QPushButton::clicked,
+	        controller->getWindow(), &MainWindow::showOpenDialog);
+	layout->addWidget(open_map_button);
 	
 	file_list_widget = makeFileListWidget();
 	connect(file_list_widget, &QListWidget::itemClicked, this, &HomeScreenWidgetMobile::itemClicked);

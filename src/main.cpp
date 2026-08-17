@@ -125,6 +125,42 @@ void resetActivationWindow(QtSingleApplication& app)
 
 #endif
 
+#include <QFileOpenEvent>
+
+namespace {
+
+class MapperApplication : public QApplication
+{
+public:
+	using QApplication::QApplication;
+
+	bool event(QEvent* event) override
+	{
+		if (event->type() == QEvent::FileOpen)
+		{
+			auto* file_open_event = static_cast<QFileOpenEvent*>(event);
+			auto path = file_open_event->file();
+			if (path.isEmpty() && file_open_event->url().isLocalFile())
+				path = file_open_event->url().toLocalFile();
+			if (!path.isEmpty())
+			{
+				const auto top_level_widgets = topLevelWidgets();
+				for (auto* widget : top_level_widgets)
+				{
+					if (auto* win = qobject_cast<MainWindow*>(widget))
+					{
+						win->openPathLater(path);
+						return true;
+					}
+				}
+			}
+			return true;
+		}
+		return QApplication::event(event);
+	}
+};
+
+}  // namespace
 
 int main(int argc, char** argv)
 {
@@ -140,7 +176,7 @@ int main(int argc, char** argv)
 		return 0;
 	}
 #else
-	QApplication qapp(argc, argv);
+	MapperApplication qapp(argc, argv);
 #endif
 
 #if defined(Q_OS_IOS) && defined(Q_PROCESSOR_X86_64)

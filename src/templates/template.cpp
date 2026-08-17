@@ -37,6 +37,7 @@
 #include <QColor>
 #include <QCoreApplication>
 #include <QDir>
+#include <QDirIterator>
 #include <QFileInfo>
 #include <QLatin1Char>
 #include <QLatin1String>
@@ -597,12 +598,24 @@ Template::LookupResult Template::tryToFindTemplateFile(const QString& map_path)
 			return { path };
 		return {};
 	};
-	
+
+	const auto map_dir = dir(map_path);
+
+	// Normalize potential Windows separators
+	const auto rel_path = QDir::fromNativeSeparators(getTemplateRelativePath());
+	const auto raw_path = QDir::fromNativeSeparators(getTemplatePath());
+	const auto raw_filename = QDir::fromNativeSeparators(getTemplateFilename());
+
+	QString pure_filename = QFileInfo(raw_filename).fileName();
+	if (pure_filename.isEmpty())
+		pure_filename = QFileInfo(raw_path).fileName();
+	if (pure_filename.isEmpty())
+		pure_filename = QFileInfo(rel_path).fileName();
+
 	// 1. The relative path with regard to the map directory, if both are valid
-	auto const rel_path = getTemplateRelativePath();
 	if (!rel_path.isEmpty() && !map_path.isEmpty())
 	{
-		auto const abs_path_info = QFileInfo(dir(map_path).absoluteFilePath(rel_path));
+		const auto abs_path_info = QFileInfo(map_dir.absoluteFilePath(rel_path));
 		if (abs_path_info.isFile())
 		{
 			setTemplateFileInfo(abs_path_info);
@@ -610,29 +623,121 @@ Template::LookupResult Template::tryToFindTemplateFile(const QString& map_path)
 			return FoundByRelPath;
 		}
 	}
-	
+
 	// 2. The absolute path of the template
-	auto const template_path_info = QFileInfo(getTemplatePath());
-	if (template_path_info.isFile())
+	if (!raw_path.isEmpty())
 	{
-		/* setTemplateFileInfo(template_path_info); */
-		set_state(Unloaded);
-		return FoundByAbsPath;
+		const auto template_path_info = QFileInfo(raw_path);
+		if (template_path_info.isFile())
+		{
+			setTemplateFileInfo(template_path_info);
+			set_state(Unloaded);
+			return FoundByAbsPath;
+		}
 	}
-	
-	// 3. The map directory, if valid, for the filename of the template
-	auto const filename = getTemplateFilename();
-	if (!filename.isEmpty() && !map_path.isEmpty())
+
+	// 3. The map directory, for the direct filename of the template
+	if (!pure_filename.isEmpty() && !map_path.isEmpty())
 	{
-		auto const abs_path_info = QFileInfo(dir(map_path).absoluteFilePath(filename));
+		const auto abs_path_info = QFileInfo(map_dir.absoluteFilePath(pure_filename));
 		if (abs_path_info.isFile())
 		{
 			setTemplateFileInfo(abs_path_info);
 			set_state(Unloaded);
 			return FoundInMapDir;
 		}
+
+		// 4. Check common template subdirectories in map directory
+		const QStringList subdirs {
+			QStringLiteral("templates"),
+			QStringLiteral("images"),
+			QStringLiteral("img"),
+			QStringLiteral("底图"),
+			QStringLiteral("basemap"),
+			QStringLiteral("base_map"),
+			QStringLiteral("raster")
+		};
+		for (const auto& subdir : subdirs)
+		{
+			const auto sub_path_info = QFileInfo(map_dir.filePath(subdir + QLatin1Char('/') + pure_filename));
+			if (sub_path_info.isFile())
+			{
+				setTemplateFileInfo(sub_path_info);
+				set_state(Unloaded);
+				return FoundInMapDir;
+			}
+			if (!rel_path.isEmpty())
+			{
+				const auto sub_rel_info = QFileInfo(map_dir.filePath(subdir + QLatin1Char('/') + rel_path));
+				if (sub_rel_info.isFile())
+				{
+					setTemplateFileInfo(sub_rel_info);
+					set_state(Unloaded);
+					return FoundInMapDir;
+				}
+			}
+		}
+
+		// 5. Check parent directory and parent subdirectories
+		const auto parent_path_info = QFileInfo(map_dir.filePath(QStringLiteral("../") + pure_filename));
+		if (parent_path_info.isFile())
+		{
+			setTemplateFileInfo(parent_path_info);
+			set_state(Unloaded);
+			return FoundInMapDir;
+		}
+		for (const auto& subdir : subdirs)
+		{
+			const auto parent_sub_info = QFileInfo(map_dir.filePath(QStringLiteral("../") + subdir + QLatin1Char('/') + pure_filename));
+			if (parent_sub_info.isFile())
+			{
+				setTemplateFileInfo(parent_sub_info);
+				set_state(Unloaded);
+				return FoundInMapDir;
+			}
+		}
+
+		// 6. Case-insensitive search in map directory and its subdirectories
+		QDirIterator it(map_dir.path(), QDir::Files | QDir::NoSymLinks, QDirIterator::Subdirectories);
+		while (it.hasNext())
+		{
+			it.next();
+			const auto entry_info = it.fileInfo();
+			if (entry_info.fileName().compare(pure_filename, Qt::CaseInsensitive) == 0)
+			{
+				setTemplateFileInfo(entry_info);
+				set_state(Unloaded);
+				return FoundInMapDir;
+			}
+		}
+
+		// 7. Base name match with any supported image/template extension
+		const auto base_name = QFileInfo(pure_filename).completeBaseName();
+		if (!base_name.isEmpty())
+		{
+			QDirIterator it2(map_dir.path(), QDir::Files | QDir::NoSymLinks, QDirIterator::Subdirectories);
+			while (it2.hasNext())
+			{
+				it2.next();
+				const auto entry_info = it2.fileInfo();
+				if (entry_info.completeBaseName().compare(base_name, Qt::CaseInsensitive) == 0)
+				{
+					const auto ext = entry_info.suffix().toLower();
+					if (ext == QLatin1String("jpg") || ext == QLatin1String("jpeg")
+					    || ext == QLatin1String("png") || ext == QLatin1String("tif")
+					    || ext == QLatin1String("tiff") || ext == QLatin1String("geotiff")
+					    || ext == QLatin1String("bmp") || ext == QLatin1String("ocd")
+					    || ext == QLatin1String("omap"))
+					{
+						setTemplateFileInfo(entry_info);
+						set_state(Unloaded);
+						return FoundInMapDir;
+					}
+				}
+			}
+		}
 	}
-	
+
 	set_state(Invalid);
 	setErrorString(tr("No such file."));
 	return NotFound;

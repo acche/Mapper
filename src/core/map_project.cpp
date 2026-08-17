@@ -597,9 +597,59 @@ bool ProjectManager::importProject(const QString& source_path, QString& imported
 	imported_path.clear();
 	ProjectManager source_manager;
 	MapProject project;
-	if (!source_manager.loadProject(source_path, project, error))
-		return false;
-	if (!source_manager.inspectProject(source_path, project).isOfflineReady())
+	bool loaded_from_manifest = source_manager.loadProject(source_path, project, nullptr);
+	if (!loaded_from_manifest)
+	{
+		QDir source_dir(source_path);
+		if (QFileInfo(source_path).isDir())
+		{
+			const QStringList map_filters {
+				QStringLiteral("*.omap"), QStringLiteral("*.xmap"), QStringLiteral("*.ocd")
+			};
+			const auto map_entries = source_dir.entryInfoList(map_filters, QDir::Files, QDir::Name);
+			if (!map_entries.isEmpty())
+			{
+				const auto& primary_map = map_entries.first();
+				project.name = QFileInfo(source_path).fileName();
+				if (project.name.isEmpty() || project.name == QLatin1String("."))
+					project.name = primary_map.completeBaseName();
+				project.map_file = source_dir.relativeFilePath(primary_map.filePath());
+				project.scale = 10000;
+				project.created_at = QDateTime::currentDateTimeUtc();
+				project.modified_at = project.created_at;
+
+				const QStringList template_filters {
+					QStringLiteral("*.png"), QStringLiteral("*.jpg"), QStringLiteral("*.jpeg"),
+					QStringLiteral("*.tif"), QStringLiteral("*.tiff"), QStringLiteral("*.geotiff")
+				};
+				const auto template_entries = source_dir.entryInfoList(template_filters, QDir::Files, QDir::Name);
+				for (const auto& t_entry : template_entries)
+				{
+					project.template_files.append(source_dir.relativeFilePath(t_entry.filePath()));
+				}
+			}
+			else
+			{
+				setError(error, QStringLiteral("No OpenOrienteering map (*.omap) or project manifest found in the selected folder."));
+				return false;
+			}
+		}
+		else if (QFileInfo(source_path).isFile())
+		{
+			const QFileInfo file_info(source_path);
+			project.name = file_info.completeBaseName();
+			project.map_file = file_info.fileName();
+			project.scale = 10000;
+			project.created_at = QDateTime::currentDateTimeUtc();
+			project.modified_at = project.created_at;
+		}
+		else
+		{
+			setError(error, QStringLiteral("The selected source path does not exist."));
+			return false;
+		}
+	}
+	else if (!source_manager.inspectProject(source_path, project).isOfflineReady())
 	{
 		setError(error, QStringLiteral("The imported project has missing files."));
 		return false;
@@ -611,11 +661,25 @@ bool ProjectManager::importProject(const QString& source_path, QString& imported
 	QString destination;
 	if (!createProject(project, destination, error))
 		return false;
-	if (!copyDirectoryContents(source_path, destination, manifestFileName(), error)
-	    || !saveProject(destination, project, error))
+
+	if (QFileInfo(source_path).isDir())
 	{
-		QDir(destination).removeRecursively();
-		return false;
+		if (!copyDirectoryContents(source_path, destination, manifestFileName(), error)
+		    || !saveProject(destination, project, error))
+		{
+			QDir(destination).removeRecursively();
+			return false;
+		}
+	}
+	else
+	{
+		const QFileInfo file_info(source_path);
+		if (!QFile::copy(source_path, QDir(destination).filePath(file_info.fileName()))
+		    || !saveProject(destination, project, error))
+		{
+			QDir(destination).removeRecursively();
+			return false;
+		}
 	}
 	imported_path = destination;
 	return true;
