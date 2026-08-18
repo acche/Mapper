@@ -10,3 +10,14 @@ help/*.qhc
 3rd-party/*/download
 !3rd-party/*/download/README.txt
 packaging/android/Mapper
+
+# Credentials and packaging artifacts
+*.p8
+AuthKey_*.p8
+*.ipa
+*.xcarchive
+*.mobileprovision
+*.provisionprofile
+.appstoreconnect/
+private_keys/
+
