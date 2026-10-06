@@ -400,7 +400,10 @@ private slots:
 		auto projected = georef.toProjectedCoords(LatLon(54.558203, -3.393209), &ok);
 		QVERIFY(ok);
 		auto expected = QPointF{310000, 519000};
-		if (QLineF(projected, expected).length() > 0.5)
+		// PROJ's current high-accuracy OSGB36 transformation produces
+		// (310000.25, 518999.15).  A one-metre tolerance still verifies that
+		// the GeoTIFF SRS was used while allowing the improved datum grid.
+		if (QLineF(projected, expected).length() > 1.0)
 			QCOMPARE(projected, expected);
 		else
 			QVERIFY2(true, "SRS from GeoTIFF is okay");

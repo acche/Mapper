@@ -95,6 +95,60 @@ jobs:
     - template: publish.yml
 
 
+- job: macOS_arm64
+  displayName: macOS Apple Silicon (Release)
+  dependsOn: Release_Notes
+  variables:
+    IMAGE_NAME: 'macos-15'
+    MACOSX_DEPLOYMENT_TARGET: '15.0'
+    QT_STYLE_OVERRIDE: fusion
+  pool:
+    vmImage: '$(IMAGE_NAME)'
+  steps:
+    - checkout: self
+      fetchDepth: 1
+    - bash: |
+        set -euo pipefail
+        brew install qt@5 gdal
+      displayName: 'Install native build dependencies'
+    - bash: |
+        set -euo pipefail
+        qt_prefix=$(brew --prefix qt@5)
+        gdal_prefix=$(brew --prefix gdal)
+        proj_prefix=$(brew --prefix proj)
+        homebrew_prefix=$(brew --prefix)
+        cmake -S . -B build/macos-arm64 \
+          -DCMAKE_BUILD_TYPE=Release \
+          -DCMAKE_OSX_ARCHITECTURES=arm64 \
+          -DCMAKE_OSX_DEPLOYMENT_TARGET="${MACOSX_DEPLOYMENT_TARGET}" \
+          -DCMAKE_POLICY_VERSION_MINIMUM=3.5 \
+          -DCMAKE_PREFIX_PATH="${qt_prefix};${gdal_prefix};${proj_prefix}" \
+          -DCMAKE_DISABLE_FIND_PACKAGE_ClangTidy=TRUE \
+          -DCMAKE_DISABLE_FIND_PACKAGE_IWYU=TRUE \
+          -DMapper_BUILD_CLIPPER=ON \
+          -DMapper_PACKAGE_LIBRARY_HINTS="${homebrew_prefix}/lib" \
+          -DMapper_USE_GDAL=ON
+        cmake --build build/macos-arm64 --parallel 3
+      displayName: 'Build native Apple Silicon application'
+    - bash: |
+        set -euo pipefail
+        ctest --test-dir build/macos-arm64 --output-on-failure -j3
+      displayName: 'Test native Apple Silicon application'
+    - bash: |
+        set -euo pipefail
+        cmake --build build/macos-arm64 --target package --parallel 3
+        dmg=$(find build/macos-arm64 -maxdepth 1 -name 'OpenOrienteering-Mapper-*-macOS-arm64.dmg' -print -quit)
+        if [[ -z "${dmg}" ]]; then
+          echo 'Apple Silicon DMG was not produced' >&2
+          exit 1
+        fi
+        ci/verify-macos-arm64.sh "${dmg}"
+        mkdir -p output
+        cp "${dmg}" output/
+      displayName: 'Package and verify Apple Silicon DMG'
+    - template: publish.yml
+
+
 - job: Linux_RelWithDebInfo
   displayName: Linux (RelWithDebInfo)
   dependsOn: Codespell
@@ -394,4 +448,3 @@ jobs:
           -Ddefault_PREFIX_PATH=$(SUPERBUILD_INSTALL_DIR)/$(MINGW)/superbuild
           -DMapper_CI_GDAL_DATA_DIR=$(SUPERBUILD_INSTALL_DIR)/$(MINGW)/superbuild/share/gdal
     - template: publish.yml
-

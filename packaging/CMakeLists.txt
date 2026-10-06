@@ -111,7 +111,15 @@ endif()
 if(ANDROID)
 	set(_system_name "Android-${CMAKE_ANDROID_ARCH_ABI}")
 elseif(APPLE)
-	set(_system_name "macOS")
+	# Keep the historical name for Intel and universal packages, but make a
+	# native Apple Silicon package distinguishable from the Intel-only one.
+	# CMAKE_OSX_ARCHITECTURES is set explicitly by release builds, so this also
+	# avoids relying on the architecture of the machine running CMake.
+	if(CMAKE_OSX_ARCHITECTURES STREQUAL "arm64")
+		set(_system_name "macOS-arm64")
+	else()
+		set(_system_name "macOS")
+	endif()
 elseif(CMAKE_SIZEOF_VOID_P EQUAL 4)
 	set(_system_name "${CMAKE_SYSTEM_NAME}-x86")
 elseif(CMAKE_SIZEOF_VOID_P EQUAL 8)
@@ -173,6 +181,12 @@ if(WIN32)
 	
 elseif(APPLE)
 	set(MAPPER_MACOS_SUBDIR "/Mapper.app/Contents/MacOS")
+	if(Mapper_PACKAGE_CODESIGN_IDENTITY)
+		find_program(CODESIGN_EXECUTABLE codesign)
+		if(NOT CODESIGN_EXECUTABLE)
+			message(FATAL_ERROR "codesign is required to create a runnable macOS package")
+		endif()
+	endif()
 	set(CPACK_GENERATOR_DEFAULT "DragNDrop")
 	set(CPACK_PACKAGE_ICON "${PROJECT_SOURCE_DIR}/images/mapper-icon/Mapper.icns")
 	set(CPACK_COMMAND_HDIUTIL "${CMAKE_CURRENT_LIST_DIR}/macos/hdiutil.sh")
@@ -305,7 +319,7 @@ if(Mapper_PACKAGE_GDAL)
 	  DESTINATION "${MAPPER_DATA_DESTINATION}/gdal")
 	foreach(item IN LISTS GDAL_LIBRARIES)
 		if(EXISTS "${item}")
-			get_filename_component(GDAL_LIBRARY_DIR "{item}" PATH)
+			get_filename_component(GDAL_LIBRARY_DIR "${item}" PATH)
 			list(APPEND MAPPER_LIB_HINTS "${GDAL_LIBRARY_DIR}")
 		endif()
 	endforeach()
@@ -427,6 +441,8 @@ if(MINGW)
 	# Grep is used (and desperately needed) to speed up objdump parsing.
 	find_program(gp_grep_cmd NAMES grep)
 endif()
+
+list(APPEND MAPPER_LIB_HINTS ${Mapper_PACKAGE_LIBRARY_HINTS})
 	
 
 # Install all plugins

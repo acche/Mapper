@@ -65,6 +65,23 @@ function(fixup_bundle_portable runtime dirs)
 		endif()
 	elseif(APPLE)
 		include(BundleUtilities)
+		# Homebrew and other modern macOS packages commonly use an @rpath
+		# install name for dylibs that live beside the library loading them.
+		# BundleUtilities does not expand @loader_path inside LC_RPATH when it
+		# resolves such transitive dependencies, so resolve this common layout
+		# explicitly before fixup_bundle copies the files into the app.
+		function(gp_resolve_item_override context item exepath dirs resolved_item_var resolved_var)
+			if(NOT ${resolved_var} AND item MATCHES "^@rpath/")
+				get_filename_component(context_dir "${context}" DIRECTORY)
+				get_filename_component(item_name "${item}" NAME)
+				find_file(sibling_item "${item_name}" PATHS "${context_dir}" NO_DEFAULT_PATH)
+				if(sibling_item)
+					set(${resolved_item_var} "${sibling_item}" PARENT_SCOPE)
+					set(${resolved_var} 1 PARENT_SCOPE)
+				endif()
+				unset(sibling_item CACHE)
+			endif()
+		endfunction()
 		file(GLOB_RECURSE plugins "$ENV{DESTDIR}${CMAKE_INSTALL_PREFIX}${runtime_destination}@MAPPER_MACOS_SUBDIR@/../PlugIns/*.dylib")
 		list(APPEND runtime "${plugins}")
 		fixup_bundle("$ENV{DESTDIR}${CMAKE_INSTALL_PREFIX}${runtime_destination}/Mapper.app" "${runtime}" "${dirs}")
@@ -73,6 +90,18 @@ function(fixup_bundle_portable runtime dirs)
 			foreach(item ${dylibs} ${runtime})
 				execute_process(COMMAND "@CMAKE_STRIP@" -x "${item}")
 			endforeach()
+		endif()
+		if(NOT "@Mapper_PACKAGE_CODESIGN_IDENTITY@" STREQUAL "")
+			set(app "$ENV{DESTDIR}${CMAKE_INSTALL_PREFIX}${runtime_destination}/Mapper.app")
+			execute_process(
+			  COMMAND "@CODESIGN_EXECUTABLE@" --force --deep
+			          --sign "@Mapper_PACKAGE_CODESIGN_IDENTITY@" "${app}"
+			  RESULT_VARIABLE codesign_result
+			  ERROR_VARIABLE codesign_error
+			)
+			if(NOT codesign_result EQUAL 0)
+				message(FATAL_ERROR "Failed to sign ${app}: ${codesign_error}")
+			endif()
 		endif()
 	elseif(ANDROID)
 		# Do nothing
