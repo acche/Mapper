@@ -112,7 +112,14 @@ option(Mapper_PACKAGE_PROJ      "Include all required Proj components in the pac
 option(Mapper_PACKAGE_GDAL      "Include all required GDAL components in the packages" ${mapper_package_gdal})
 option(Mapper_PACKAGE_QT        "Include all required Qt components in the packages"   ${mapper_package_default})
 option(Mapper_PACKAGE_ASSISTANT "Include Qt Assistant in the packages"                 ${mapper_package_assistant})
-mark_as_advanced(Mapper_PACKAGE_PROJ Mapper_PACKAGE_GDAL Mapper_PACKAGE_QT Mapper_PACKAGE_ASSISTANT)
+set(Mapper_PACKAGE_LIBRARY_HINTS "" CACHE STRING
+  "Additional library directories used to resolve package dependencies")
+if(APPLE)
+	set(mapper_package_codesign_identity "-")
+endif()
+set(Mapper_PACKAGE_CODESIGN_IDENTITY "${mapper_package_codesign_identity}" CACHE STRING
+  "Code signing identity for the macOS package (use '-' for ad-hoc signing)")
+mark_as_advanced(Mapper_PACKAGE_PROJ Mapper_PACKAGE_GDAL Mapper_PACKAGE_QT Mapper_PACKAGE_ASSISTANT Mapper_PACKAGE_LIBRARY_HINTS Mapper_PACKAGE_CODESIGN_IDENTITY)
 
 
 # Installation configuration
@@ -304,8 +311,8 @@ if(NOT ANDROID AND NOT IOS)
 endif()
 add_subdirectory("src/sensors")
 add_subdirectory("src")
-add_subdirectory("packaging")
 add_subdirectory("doc/licensing")
+add_subdirectory("packaging")
 
 if(CMAKE_CROSSCOMPILING)
 	add_custom_target(TEST_WARNING ALL
