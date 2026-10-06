@@ -4,7 +4,7 @@ set -e
 ROOT=/Users/ac/Dev/aibox/app/open-orienteering-map
 APP=$ROOT/ios-build/mapper-ipados-device/src/Mapper.app
 BUILD=$ROOT/ios-build/mapper-ipados-device
-PROFILE="$HOME/Library/Developer/Xcode/UserData/Provisioning Profiles/023f2920-4a11-4da4-8214-41a4891af114.mobileprovision"
+PROFILE="$HOME/Library/Developer/Xcode/UserData/Provisioning Profiles/8e72b858-0c0f-4dc8-b428-b273f59736a2.mobileprovision"
 IDENTITY="Apple Development: CHEN CHEN (2SM7B97Q5E)"
 DEVICE=816982D8-3D73-5A6E-8B8B-CD72821842CE
 
