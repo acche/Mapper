@@ -1,0 +1,113 @@
+name: Upstream Sync & Compile Check
+
+on:
+  schedule:
+    # 每天北京时间凌晨 04:00 (UTC 20:00) 自动检查并同步
+    - cron: '0 20 * * *'
+  workflow_dispatch: # 支持在 GitHub 网页手动一键触发
+
+permissions:
+  contents: write
+  issues: write
+
+jobs:
+  sync-upstream:
+    name: Sync upstream/master and verify build
+    runs-on: macos-14
+    steps:
+      - name: Checkout ipados-port
+        uses: actions/checkout@v4
+        with:
+          ref: ipados-port
+          fetch-depth: 0
+
+      - name: Configure Git Committer
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Fetch and Check Upstream
+        id: sync_check
+        run: |
+          git remote add upstream https://github.com/OpenOrienteering/mapper.git || true
+          git fetch upstream master
+          
+          # 检查上游是否有新的提交需要合并
+          BEHIND_COUNT=$(git rev-list --count HEAD..upstream/master)
+          echo "behind_count=$BEHIND_COUNT" >> $GITHUB_OUTPUT
+          
+          if [ "$BEHIND_COUNT" -eq 0 ]; then
+            echo "Already up-to-date with upstream/master. No sync needed."
+            exit 0
+          fi
+          
+          echo "Found $BEHIND_COUNT new commits in upstream/master. Attempting merge..."
+          if git merge upstream/master --no-edit -m "chore: sync upstream master into ipados-port"; then
+            echo "merge_status=success" >> $GITHUB_OUTPUT
+          else
+            echo "merge_status=conflict" >> $GITHUB_OUTPUT
+            CONFLICTS=$(git diff --name-only --diff-filter=U)
+            echo "conflicts<<EOF" >> $GITHUB_OUTPUT
+            echo "$CONFLICTS" >> $GITHUB_OUTPUT
+            echo "EOF" >> $GITHUB_OUTPUT
+            git merge --abort
+            exit 1
+          fi
+
+      - name: Install Build Dependencies
+        if: steps.sync_check.outputs.behind_count != '0' && steps.sync_check.outputs.merge_status == 'success'
+        run: |
+          brew install ninja qt@6 proj gdal libxml2
+          brew link --force qt@6
+
+      - name: Build and Verify Compilation
+        if: steps.sync_check.outputs.behind_count != '0' && steps.sync_check.outputs.merge_status == 'success'
+        id: build_step
+        run: |
+          cmake -B build -G Ninja \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_PREFIX_PATH="$(brew --prefix qt@6);$(brew --prefix proj);$(brew --prefix gdal)" \
+            -DMapper_USE_GDAL=ON \
+            -DMapper_WITH_COVE=OFF \
+            -DMapper_MANUAL_QTHELP=OFF \
+            -DMapper_PACKAGE_PROJ=OFF \
+            -DMapper_PACKAGE_QT=OFF \
+            -DMapper_PACKAGE_ASSISTANT=OFF
+          ninja -C build Mapper_Common
+
+      - name: Push Merged Changes
+        if: steps.sync_check.outputs.behind_count != '0' && steps.sync_check.outputs.merge_status == 'success'
+        run: |
+          git push origin ipados-port
+
+      - name: Notify on Failure
+        if: failure()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const runUrl = `${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`;
+            let title = '🚨 [CI Alert] Upstream 自动合并或编译验证失败';
+            let body = `### ⚠️ Upstream 自动同步出现问题\n\n` +
+                       `- **工作流运行记录**: [查看 Action 日志](${runUrl})\n` +
+                       `- **目标分支**: \`ipados-port\`\n` +
+                       `- **上游分支**: \`upstream/master\`\n\n`;
+            
+            const mergeStatus = '${{ steps.sync_check.outputs.merge_status }}';
+            if (mergeStatus === 'conflict') {
+              title = '🚨 [Merge Conflict] Upstream 与 ipados-port 存在合并冲突';
+              body += `**原因**: 合并上游更新时检测到代码冲突，已自动撤销合并，未推送到远端。\n\n` +
+                      `**冲突文件列表**:\n\`\`\`\n${{ steps.sync_check.outputs.conflicts }}\n\`\`\`\n\n` +
+                      `**处理建议**: 请在本地执行 \`git merge upstream/master\` 解决冲突并测试后手动 push。`;
+            } else {
+              title = '🚨 [Build Error] Upstream 合并后编译验证未通过';
+              body += `**原因**: 代码可顺利无冲突合并，但在编译验证步骤失败（上游可能修改了依赖项、API 签名或虚函数）。\n\n` +
+                      `**处理建议**: 请点击上方链接查看编译报错信息，修好后再提交。`;
+            }
+            
+            await github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: title,
+              body: body,
+              labels: ['ci-alert', 'upstream-sync']
+            });
