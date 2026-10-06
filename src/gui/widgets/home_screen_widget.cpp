@@ -348,12 +348,6 @@ HomeScreenWidgetMobile::HomeScreenWidgetMobile(HomeScreenController* controller,
 	connect(new_project_button, &QPushButton::clicked,
 	        controller->getWindow(), &MainWindow::showNewProjectWizard);
 	layout->addWidget(new_project_button);
-	auto* import_project_button = new QPushButton(tr("Import a mapping project"));
-	import_project_button->setIcon(QIcon(QStringLiteral(":/images/open.png")));
-	import_project_button->setMinimumHeight(48);
-	connect(import_project_button, &QPushButton::clicked,
-	        controller->getWindow(), &MainWindow::showImportProjectDialog);
-	layout->addWidget(import_project_button);
 	auto* open_map_button = new QPushButton(HomeScreenWidgetDesktop::tr("Open map ..."));
 	open_map_button->setIcon(QIcon(QStringLiteral(":/images/open.png")));
 	open_map_button->setMinimumHeight(48);

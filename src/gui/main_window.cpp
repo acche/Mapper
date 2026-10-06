@@ -1066,6 +1066,24 @@ void MainWindow::showOpenDialog()
 
 bool MainWindow::openPath(const QString &path)
 {
+	if (QFileInfo(path).fileName() == QLatin1String("project.json"))
+	{
+		const QString project_dir = QFileInfo(path).absolutePath();
+		ProjectManager manager;
+		MapProject project;
+		QString error;
+		if (manager.loadProject(project_dir, project, &error))
+			return openPath(manager.mapPath(project_dir, project));
+	}
+	else if (QFileInfo(path).isDir())
+	{
+		ProjectManager manager;
+		MapProject project;
+		QString error;
+		if (manager.loadProject(path, project, &error))
+			return openPath(manager.mapPath(path, project));
+	}
+
 	auto format = FileFormats.findFormatForFilename(path, &FileFormat::supportsFileOpen);
 	if (!format)
 		format = FileFormats.findFormatForData(path, FileFormat::AllFiles);
