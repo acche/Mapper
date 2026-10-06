@@ -1,10 +1,10 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>OpenOrienteering Mapper for iOS / iPadOS - 移动端移植与更新历史</title>
-  <meta name="description" content="OpenOrienteering Mapper 适用于 iPadOS 与 iOS 的专业定向越野制图软件移植版。支持离线外业测绘、GPS 轨迹、Retina 高清渲染与上游自动同步。">
+  <title>OpenOrienteering Mapper for iOS / iPadOS - Mobile Port & Changelog</title>
+  <meta name="description" content="OpenOrienteering Mapper ported to iOS and iPadOS. Professional orienteering cartography with offline fieldwork readiness, GPS tracking, and Retina rendering.">
   <link rel="icon" type="image/png" href="assets/icon.png">
   <style>
     :root {
@@ -46,7 +46,7 @@
       overflow-x: hidden;
     }
 
-    /* Ambient background glows */
+    /* Ambient background glow */
     .ambient-glow {
       position: fixed;
       top: 0;
@@ -74,7 +74,7 @@
       z-index: 100;
       backdrop-filter: blur(16px);
       -webkit-backdrop-filter: blur(16px);
-      background: rgba(9, 13, 22, 0.8);
+      background: rgba(9, 13, 22, 0.85);
       border-bottom: 1px solid var(--border-color);
     }
 
@@ -102,10 +102,16 @@
       box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
     }
 
+    .nav-right {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+    }
+
     .nav-links {
       display: flex;
       align-items: center;
-      gap: 24px;
+      gap: 20px;
       list-style: none;
     }
 
@@ -119,6 +125,34 @@
 
     .nav-links a:hover {
       color: var(--text-primary);
+    }
+
+    /* Language Switcher */
+    .lang-switcher {
+      display: inline-flex;
+      align-items: center;
+      background: rgba(30, 41, 59, 0.6);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-full);
+      padding: 3px;
+      gap: 2px;
+    }
+
+    .lang-btn {
+      background: transparent;
+      border: none;
+      color: var(--text-secondary);
+      padding: 4px 10px;
+      border-radius: var(--radius-full);
+      font-size: 0.8125rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: var(--transition);
+    }
+
+    .lang-btn.active {
+      background: var(--accent-green);
+      color: #042f2e;
     }
 
     .btn-nav-sponsor {
@@ -182,7 +216,7 @@
     .hero p {
       font-size: clamp(1.0625rem, 2vw, 1.25rem);
       color: var(--text-secondary);
-      max-width: 680px;
+      max-width: 720px;
       margin: 0 auto 36px;
     }
 
@@ -575,20 +609,28 @@
         <img src="assets/icon.png" alt="Mapper Logo">
         <span>Mapper for iOS</span>
       </a>
-      <ul class="nav-links">
-        <li><a href="#features">特色功能</a></li>
-        <li><a href="#changelog">更新历史</a></li>
-        <li><a href="#sponsor">赞助支持</a></li>
-        <li><a href="https://github.com/acche/Mapper" target="_blank">GitHub 仓库</a></li>
-        <li>
-          <a href="https://github.com/sponsors/acche" target="_blank" class="btn-nav-sponsor">
-            <svg height="16" width="16" viewBox="0 0 16 16" fill="currentColor">
-              <path d="m8 14.25.345.666a.75.75 0 0 1-.69 0l-.008-.004-.018-.01a7.152 7.152 0 0 1-.31-.17 22.055 22.055 0 0 1-3.434-2.414C2.045 10.731 0 8.35 0 5.5 0 2.931 2.055 1 4.5 1c1.554 0 2.825.86 3.5 1.954C8.675 1.86 9.946 1 11.5 1 13.945 1 16 2.931 16 5.5c0 2.85-2.045 5.231-3.885 6.818a22.066 22.066 0 0 1-3.434 2.414 7.152 7.152 0 0 1-.31.17l-.018.01-.008.004-.002.001h-.001ZM4.5 2.5C2.868 2.5 1.5 3.843 1.5 5.5c0 2.126 1.637 4.195 3.245 5.578a20.565 20.565 0 0 0 3.255 2.298 20.565 20.565 0 0 0 3.255-2.298C12.863 9.695 14.5 7.626 14.5 5.5 14.5 3.843 13.132 2.5 11.5 2.5c-1.391 0-2.585.952-2.88 2.274a.75.75 0 0 1-1.46 0C6.865 3.452 5.671 2.5 4.5 2.5Z"></path>
-            </svg>
-            Sponsor
-          </a>
-        </li>
-      </ul>
+
+      <div class="nav-right">
+        <ul class="nav-links">
+          <li><a href="#features" data-i18n="nav_features">Features</a></li>
+          <li><a href="#changelog" data-i18n="nav_changelog">Changelog</a></li>
+          <li><a href="#sponsor" data-i18n="nav_sponsor">Sponsor</a></li>
+          <li><a href="https://github.com/acche/Mapper" target="_blank" data-i18n="nav_github">GitHub</a></li>
+        </ul>
+
+        <!-- Language Switcher -->
+        <div class="lang-switcher" aria-label="Language Selector">
+          <button class="lang-btn active" id="btnEn" onclick="setLanguage('en')">EN</button>
+          <button class="lang-btn" id="btnZh" onclick="setLanguage('zh')">中文</button>
+        </div>
+
+        <a href="https://github.com/sponsors/acche" target="_blank" class="btn-nav-sponsor">
+          <svg height="16" width="16" viewBox="0 0 16 16" fill="currentColor">
+            <path d="m8 14.25.345.666a.75.75 0 0 1-.69 0l-.008-.004-.018-.01a7.152 7.152 0 0 1-.31-.17 22.055 22.055 0 0 1-3.434-2.414C2.045 10.731 0 8.35 0 5.5 0 2.931 2.055 1 4.5 1c1.554 0 2.825.86 3.5 1.954C8.675 1.86 9.946 1 11.5 1 13.945 1 16 2.931 16 5.5c0 2.85-2.045 5.231-3.885 6.818a22.066 22.066 0 0 1-3.434 2.414 7.152 7.152 0 0 1-.31.17l-.018.01-.008.004-.002.001h-.001ZM4.5 2.5C2.868 2.5 1.5 3.843 1.5 5.5c0 2.126 1.637 4.195 3.245 5.578a20.565 20.565 0 0 0 3.255 2.298 20.565 20.565 0 0 0 3.255-2.298C12.863 9.695 14.5 7.626 14.5 5.5 14.5 3.843 13.132 2.5 11.5 2.5c-1.391 0-2.585.952-2.88 2.274a.75.75 0 0 1-1.46 0C6.865 3.452 5.671 2.5 4.5 2.5Z"></path>
+          </svg>
+          <span data-i18n="nav_btn_sponsor">Sponsor</span>
+        </a>
+      </div>
     </div>
   </header>
 
@@ -596,14 +638,16 @@
   <section class="hero container">
     <div class="hero-badge">
       <span class="hero-badge-dot"></span>
-      <span>iOS 17+ / iPadOS 17+ 通用版已发布</span>
+      <span data-i18n="hero_badge">iOS 17+ / iPadOS 17+ Universal App Released</span>
     </div>
-    <h1>专业定向越野制图<br>掌上触控与野外外业利器</h1>
-    <p>将世界主流的开源定向越野制图工具 OpenOrienteering Mapper 完整移植至 iPad 与 iPhone。为野外踏勘、GPS 轨迹绘制与多设备协同而生。</p>
+    <h1 data-i18n-html="hero_title">Professional Orienteering Cartography<br>for iPad & iPhone</h1>
+    <p data-i18n="hero_desc">Porting the world's leading open-source orienteering mapping software, OpenOrienteering Mapper, to iPadOS and iOS. Built for field survey, Apple Pencil precision, GPS tracks, and multi-device workflows.</p>
     <div class="hero-actions">
-      <a href="#changelog" class="btn btn-primary">📜 查看版本历史</a>
-      <a href="https://github.com/sponsors/acche" target="_blank" class="btn btn-sponsor-hero">💖 GitHub Sponsors 赞助</a>
-      <a href="https://github.com/acche/Mapper" target="_blank" class="btn btn-secondary">⭐ GitHub 源码</a>
+      <a href="#changelog" class="btn btn-primary" data-i18n="hero_btn_changelog">📜 View Changelog</a>
+      <a href="https://github.com/sponsors/acche" target="_blank" class="btn btn-sponsor-hero">
+        <span>💖</span> <span data-i18n="hero_btn_sponsor">Sponsor on GitHub</span>
+      </a>
+      <a href="https://github.com/acche/Mapper" target="_blank" class="btn btn-secondary" data-i18n="hero_btn_source">⭐ GitHub Source</a>
     </div>
   </section>
 
@@ -612,23 +656,23 @@
     <div class="features-grid">
       <div class="feature-card">
         <div class="feature-icon">📱</div>
-        <h3>Universal 跨端适配</h3>
-        <p>适配 iPad 全系列大屏（支持 Apple Pencil 绘制）与 iPhone 全系列（大屏 Pro Max 到小屏 mini 随身查图）。</p>
+        <h3 data-i18n="feat_1_title">Universal iOS Support</h3>
+        <p data-i18n="feat_1_desc">Full support for iPad with Apple Pencil precision, as well as iPhone from mini to Pro Max for on-the-go map inspection.</p>
       </div>
       <div class="feature-card">
         <div class="feature-icon">🌲</div>
-        <h3>离线外业就绪 (Offline Ready)</h3>
-        <p>支持 GeoTIFF 航片大底图脱网读取，并在深山无信号环境中结合 GPS 与电子罗盘进行实时轨迹定位。</p>
+        <h3 data-i18n="feat_2_title">Offline Fieldwork Ready</h3>
+        <p data-i18n="feat_2_desc">Offline GeoTIFF orthophoto basemap rendering with live GPS positioning and electronic compass orientation in deep woods.</p>
       </div>
       <div class="feature-card">
         <div class="feature-icon">☁️</div>
-        <h3>iCloud 就地读写与多机协同</h3>
-        <p>支持 iOS 系统“文件”App 原地保存，Mac、iPad、iPhone 间无缝同步，并支持分测区导入合并总图。</p>
+        <h3 data-i18n="feat_3_title">iCloud In-Place Sync</h3>
+        <p data-i18n="feat_3_desc">Direct read/write through the iOS Files app. Seamlessly edit across Mac, iPad, and iPhone, with support for multi-zone map imports.</p>
       </div>
       <div class="feature-card">
         <div class="feature-icon">🔄</div>
-        <h3>GitHub Actions 自动同步</h3>
-        <p>每日自动检测 upstream 官方主线提交，完成无冲突合并与 Apple Silicon 云端编译健康检查。</p>
+        <h3 data-i18n="feat_4_title">Automated Upstream CI</h3>
+        <p data-i18n="feat_4_desc">Daily GitHub Actions check for official upstream commits, automated conflict-free merges, and Apple Silicon build verification.</p>
       </div>
     </div>
   </section>
@@ -636,9 +680,9 @@
   <!-- Changelog Section -->
   <section class="container" id="changelog">
     <div class="section-header">
-      <span class="section-tag">Release Notes</span>
-      <h2 class="section-title">版本更新历史</h2>
-      <p class="section-desc">持续跟进官方主线演进，记录每一次功能改进、缺陷修复与平台优化。</p>
+      <span class="section-tag" data-i18n="cl_tag">Release Notes</span>
+      <h2 class="section-title" data-i18n="cl_title">Version History</h2>
+      <p class="section-desc" data-i18n="cl_desc">Continuously tracking upstream development with feature enhancements, performance optimizations, and platform improvements.</p>
     </div>
 
     <div class="timeline">
@@ -650,26 +694,30 @@
           <div class="release-header">
             <div class="release-title-group">
               <span class="release-version">v0.9.7-ios.3</span>
-              <span class="badge-latest">最新版本</span>
+              <span class="badge-latest" data-i18n="badge_latest">Latest</span>
             </div>
-            <span class="release-date">2026 年 10 月 6 日</span>
+            <span class="release-date" data-i18n="v3_date">October 6, 2026</span>
           </div>
           <ul class="release-list">
             <li>
-              <span class="tag-pill feat">新功能</span>
-              <strong>iPhone Universal 架构全面适配</strong>：调整打包配置中的 <code>UIDeviceFamily</code> 为 <code>[1, 2]</code>，iPhone 13/14/15/16 全机型原生支持。
+              <span class="tag-pill feat" data-i18n="tag_feat">Feature</span>
+              <strong data-i18n="v3_1_title">Universal iPhone Architecture Support</strong>:
+              <span data-i18n="v3_1_desc">Configured UIDeviceFamily to Universal [1, 2], enabling full native compatibility with all iPhone 13/14/15/16 models.</span>
             </li>
             <li>
-              <span class="tag-pill opt">优化</span>
-              <strong>移动端首页按钮精简</strong>：合并冗余的「导入项目」与「打开地图」按钮为统一的 <code>Open map ...</code>，并在打开文件时自动识别 <code>.mapperproject</code> 目录包与工程清单。
+              <span class="tag-pill opt" data-i18n="tag_opt">Optimization</span>
+              <strong data-i18n="v3_2_title">Streamlined Mobile Home Screen</strong>:
+              <span data-i18n="v3_2_desc">Consolidated redundant Import/Open buttons into a single "Open map ...", automatically recognizing .mapperproject packages and project manifests.</span>
             </li>
             <li>
-              <span class="tag-pill ci">CI/CD</span>
-              <strong>集成 GitHub Actions 自动化同步流水线</strong>：每日凌晨自动拉取 <code>OpenOrienteering/mapper</code> 官方 master 提交，执行无冲突合并及 C++ 依赖编译验证，遇异常自动提 Issue 报警。
+              <span class="tag-pill ci" data-i18n="tag_ci">CI/CD</span>
+              <strong data-i18n="v3_3_title">Automated Upstream Sync Pipeline</strong>:
+              <span data-i18n="v3_3_desc">Integrated daily GitHub Actions workflow to fetch OpenOrienteering/mapper master, perform merges, verify C++ compilation, and alert via Issues on conflict.</span>
             </li>
             <li>
-              <span class="tag-pill fix">修复</span>
-              <strong>修复底图相对路径与离线状态判定</strong>：完善底图缺失检测，准确呈现 <code>offline ready</code> / <code>location not set</code> / <code>files missing</code> 测绘就绪状态。
+              <span class="tag-pill fix" data-i18n="tag_fix">Fix</span>
+              <strong data-i18n="v3_4_title">Relative Basemap Paths & Readiness Check</strong>:
+              <span data-i18n="v3_4_desc">Fixed relative template path resolving and refined project inspection to accurately report "offline ready", "location not set", and "files missing".</span>
             </li>
           </ul>
         </div>
@@ -683,20 +731,23 @@
             <div class="release-title-group">
               <span class="release-version">v0.9.7-ios.2</span>
             </div>
-            <span class="release-date">2026 年 9 月</span>
+            <span class="release-date" data-i18n="v2_date">September 2026</span>
           </div>
           <ul class="release-list">
             <li>
-              <span class="tag-pill opt">优化</span>
-              <strong>Apple Silicon 与 Xcode 工具链重构</strong>：支持基于 CMake 与 Ninja 的纯原生 arm64 架构打包。
+              <span class="tag-pill opt" data-i18n="tag_opt">Optimization</span>
+              <strong data-i18n="v2_1_title">Apple Silicon & Toolchain Modernization</strong>:
+              <span data-i18n="v2_1_desc">Migrated to native CMake and Ninja toolchain with pure arm64 device packaging.</span>
             </li>
             <li>
-              <span class="tag-pill feat">新功能</span>
-              <strong>CoreLocation 与 CoreMotion 原生传感器桥接</strong>：实现平板上的 GPS 实时坐标显示与指北针指南针自动回正。
+              <span class="tag-pill feat" data-i18n="tag_feat">Feature</span>
+              <strong data-i18n="v2_2_title">CoreLocation & CoreMotion Native Integration</strong>:
+              <span data-i18n="v2_2_desc">Enabled real-time GPS coordinate plotting and digital compass rotation on mobile devices.</span>
             </li>
             <li>
-              <span class="tag-pill feat">新功能</span>
-              <strong>LSSupportsOpeningDocumentsInPlace 就地读写支持</strong>：开启 iOS 文件提供者原地修改能力，支持配合 iCloud 云盘实现实时多端同步。
+              <span class="tag-pill feat" data-i18n="tag_feat">Feature</span>
+              <strong data-i18n="v2_3_title">In-Place Document Editing (LSSupportsOpeningDocumentsInPlace)</strong>:
+              <span data-i18n="v2_3_desc">Enabled direct read/write from iCloud Drive without copying into isolated sandboxes.</span>
             </li>
           </ul>
         </div>
@@ -710,20 +761,23 @@
             <div class="release-title-group">
               <span class="release-version">v0.9.7-ios.1</span>
             </div>
-            <span class="release-date">2026 年 8 月</span>
+            <span class="release-date" data-i18n="v1_date">August 2026</span>
           </div>
           <ul class="release-list">
             <li>
-              <span class="tag-pill feat">里程碑</span>
-              <strong>首个 iPadOS 原生编译版本问世</strong>：完成 Qt 6.11.1 静态构建并在真实 iPad 设备上成功点亮运行。
+              <span class="tag-pill feat" data-i18n="tag_feat">Milestone</span>
+              <strong data-i18n="v1_1_title">First Native iPadOS Port Bootstrapped</strong>:
+              <span data-i18n="v1_1_desc">Successfully compiled and launched on physical iPad hardware using static Qt 6.11.1.</span>
             </li>
             <li>
-              <span class="tag-pill feat">新功能</span>
-              <strong>移动端 GDAL / PROJ 交叉编译集成</strong>：支持读取 GeoTIFF 高清卫星遥感与航拍正射底图。
+              <span class="tag-pill feat" data-i18n="tag_feat">Feature</span>
+              <strong data-i18n="v1_2_title">Mobile GDAL & PROJ Geospatial Engine Cross-Compilation</strong>:
+              <span data-i18n="v1_2_desc">Supported high-resolution GeoTIFF aerial imagery and coordinate reference system transformations.</span>
             </li>
             <li>
-              <span class="tag-pill feat">新功能</span>
-              <strong>触控手势模式移植</strong>：支持移动端触控优化（长按、单指平移、双指缩放及触摸屏大按钮菜单）。
+              <span class="tag-pill feat" data-i18n="tag_feat">Feature</span>
+              <strong data-i18n="v1_3_title">Touch Gesture Interface</strong>:
+              <span data-i18n="v1_3_desc">Optimized touch interactions including pinch-to-zoom, pan gestures, and touch toolbar sizing.</span>
             </li>
           </ul>
         </div>
@@ -737,16 +791,16 @@
     <div class="sponsor-section">
       <div class="sponsor-glow"></div>
       <div class="section-header" style="margin-bottom: 24px;">
-        <span class="section-tag" style="color: var(--accent-sponsor);">GitHub Sponsors</span>
-        <h2 class="section-title">支持与赞助</h2>
-        <p class="section-desc">本项目为自由开源软件（GPLv3）。您的赞助将直接通过 GitHub 官方赞助计划用于项目的长期维护与开发！</p>
+        <span class="section-tag" style="color: var(--accent-sponsor);" data-i18n="sp_tag">GitHub Sponsors</span>
+        <h2 class="section-title" data-i18n="sp_title">Support & Sponsorship</h2>
+        <p class="section-desc" data-i18n="sp_desc">This project is free and open-source under GNU GPLv3. Your support through GitHub Sponsors directly sustains long-term development, hardware testing, and continuous maintenance!</p>
       </div>
 
       <div class="github-sponsor-banner">
         <div style="font-size: 3.5rem; margin-bottom: 16px;">💖</div>
-        <h3 style="font-size: 1.625rem; font-weight: 800; margin-bottom: 12px;">Sponsor @acche on GitHub</h3>
-        <p style="color: var(--text-secondary); max-width: 580px; margin: 0 auto 28px; line-height: 1.6;">
-          通过 GitHub Sponsors，您可以选择按月或单次赞助支持作者。所有资助将直接用于覆盖每年的 Apple Developer 开发者账号费用（$99/年）以及持续的 iOS 架构更新。
+        <h3 style="font-size: 1.625rem; font-weight: 800; margin-bottom: 12px;" data-i18n="sp_box_title">Sponsor @acche on GitHub</h3>
+        <p style="color: var(--text-secondary); max-width: 620px; margin: 0 auto 28px; line-height: 1.6;" data-i18n="sp_box_desc">
+          Through GitHub Sponsors, you can sponsor monthly or via a one-time tier. Every contribution directly helps cover the Apple Developer Program annual fees ($99/year), continuous iOS architectural updates, and real-device testing.
         </p>
         
         <div style="display: flex; justify-content: center; align-items: center; gap: 16px; flex-wrap: wrap;">
@@ -754,10 +808,10 @@
             <svg height="20" width="20" viewBox="0 0 16 16" fill="currentColor">
               <path d="m8 14.25.345.666a.75.75 0 0 1-.69 0l-.008-.004-.018-.01a7.152 7.152 0 0 1-.31-.17 22.055 22.055 0 0 1-3.434-2.414C2.045 10.731 0 8.35 0 5.5 0 2.931 2.055 1 4.5 1c1.554 0 2.825.86 3.5 1.954C8.675 1.86 9.946 1 11.5 1 13.945 1 16 2.931 16 5.5c0 2.85-2.045 5.231-3.885 6.818a22.066 22.066 0 0 1-3.434 2.414 7.152 7.152 0 0 1-.31.17l-.018.01-.008.004-.002.001h-.001ZM4.5 2.5C2.868 2.5 1.5 3.843 1.5 5.5c0 2.126 1.637 4.195 3.245 5.578a20.565 20.565 0 0 0 3.255 2.298 20.565 20.565 0 0 0 3.255-2.298C12.863 9.695 14.5 7.626 14.5 5.5 14.5 3.843 13.132 2.5 11.5 2.5c-1.391 0-2.585.952-2.88 2.274a.75.75 0 0 1-1.46 0C6.865 3.452 5.671 2.5 4.5 2.5Z"></path>
             </svg>
-            Sponsor on GitHub
+            <span data-i18n="sp_btn_sponsor">Sponsor on GitHub</span>
           </a>
-          <a href="https://github.com/acche/Mapper" target="_blank" class="btn btn-secondary">
-            ⭐ 在 GitHub Star 项目
+          <a href="https://github.com/acche/Mapper" target="_blank" class="btn btn-secondary" data-i18n="sp_btn_star">
+            ⭐ Star on GitHub
           </a>
         </div>
       </div>
@@ -766,15 +820,15 @@
       <div class="sponsor-reasons">
         <div class="reason-item">
           <span>🍎</span>
-          <p><strong>开发者账号维护</strong><br>支撑每年的 Apple Developer 证书签名（$99/年）与测试分发。</p>
+          <p><strong data-i18n="sp_r1_title">Developer Program Fees</strong><br><span data-i18n="sp_r1_desc">Sustaining the annual Apple Developer Program subscription ($99/yr) for code signing and deployment.</span></p>
         </div>
         <div class="reason-item">
           <span>⚡️</span>
-          <p><strong>CI 构建资源</strong><br>支持 GitHub Actions 自动化编译环境的日常健康运转。</p>
+          <p><strong data-i18n="sp_r2_title">CI Build Infrastructure</strong><br><span data-i18n="sp_r2_desc">Powering automated GitHub Actions Apple Silicon runners for daily build health checks.</span></p>
         </div>
         <div class="reason-item">
           <span>⛺️</span>
-          <p><strong>野外测绘优化</strong><br>实地踏勘体验反馈与持续跟进上游 OpenOrienteering 社区。</p>
+          <p><strong data-i18n="sp_r3_title">Fieldwork Experience</strong><br><span data-i18n="sp_r3_desc">On-site mapping validation, user feedback iterations, and upstream community synchronization.</span></p>
         </div>
       </div>
     </div>
@@ -784,13 +838,187 @@
   <footer>
     <div class="container">
       <p style="margin-bottom: 8px;">
-        本项目基于 <a href="https://github.com/OpenOrienteering/mapper" target="_blank">OpenOrienteering Mapper</a> 官方开源代码构建 · 遵循 GNU General Public License v3.0 (GPLv3)
+        <span data-i18n="footer_base">Based on the upstream</span> <a href="https://github.com/OpenOrienteering/mapper" target="_blank">OpenOrienteering Mapper</a> · <span data-i18n="footer_license">Licensed under GNU General Public License v3.0 (GPLv3)</span>
       </p>
-      <p>
+      <p data-i18n="footer_credit">
         Designed with care for Orienteers & Cartographers.
       </p>
     </div>
   </footer>
 
+  <script>
+    const translations = {
+      en: {
+        nav_features: "Features",
+        nav_changelog: "Changelog",
+        nav_sponsor: "Sponsor",
+        nav_github: "GitHub",
+        nav_btn_sponsor: "Sponsor",
+        hero_badge: "iOS 17+ / iPadOS 17+ Universal App Released",
+        hero_title: "Professional Orienteering Cartography<br>for iPad & iPhone",
+        hero_desc: "Porting the world's leading open-source orienteering mapping software, OpenOrienteering Mapper, to iPadOS and iOS. Built for field survey, Apple Pencil precision, GPS tracks, and multi-device workflows.",
+        hero_btn_changelog: "📜 View Changelog",
+        hero_btn_sponsor: "Sponsor on GitHub",
+        hero_btn_source: "⭐ GitHub Source",
+        feat_1_title: "Universal iOS Support",
+        feat_1_desc: "Full support for iPad with Apple Pencil precision, as well as iPhone from mini to Pro Max for on-the-go map inspection.",
+        feat_2_title: "Offline Fieldwork Ready",
+        feat_2_desc: "Offline GeoTIFF orthophoto basemap rendering with live GPS positioning and electronic compass orientation in deep woods.",
+        feat_3_title: "iCloud In-Place Sync",
+        feat_3_desc: "Direct read/write through the iOS Files app. Seamlessly edit across Mac, iPad, and iPhone, with support for multi-zone map imports.",
+        feat_4_title: "Automated Upstream CI",
+        feat_4_desc: "Daily GitHub Actions check for official upstream commits, automated conflict-free merges, and Apple Silicon build verification.",
+        cl_tag: "Release Notes",
+        cl_title: "Version History",
+        cl_desc: "Continuously tracking upstream development with feature enhancements, performance optimizations, and platform improvements.",
+        badge_latest: "Latest",
+        tag_feat: "Feature",
+        tag_opt: "Optimization",
+        tag_fix: "Fix",
+        tag_ci: "CI/CD",
+        v3_date: "October 6, 2026",
+        v3_1_title: "Universal iPhone Architecture Support",
+        v3_1_desc: "Configured UIDeviceFamily to Universal [1, 2], enabling full native compatibility with all iPhone 13/14/15/16 models.",
+        v3_2_title: "Streamlined Mobile Home Screen",
+        v3_2_desc: "Consolidated redundant Import/Open buttons into a single 'Open map ...', automatically recognizing .mapperproject packages and project manifests.",
+        v3_3_title: "Automated Upstream Sync Pipeline",
+        v3_3_desc: "Integrated daily GitHub Actions workflow to fetch OpenOrienteering/mapper master, perform merges, verify C++ compilation, and alert via Issues on conflict.",
+        v3_4_title: "Relative Basemap Paths & Readiness Check",
+        v3_4_desc: "Fixed relative template path resolving and refined project inspection to accurately report 'offline ready', 'location not set', and 'files missing'.",
+        v2_date: "September 2026",
+        v2_1_title: "Apple Silicon & Toolchain Modernization",
+        v2_1_desc: "Migrated to native CMake and Ninja toolchain with pure arm64 device packaging.",
+        v2_2_title: "CoreLocation & CoreMotion Native Integration",
+        v2_2_desc: "Enabled real-time GPS coordinate plotting and digital compass rotation on mobile devices.",
+        v2_3_title: "In-Place Document Editing (LSSupportsOpeningDocumentsInPlace)",
+        v2_3_desc: "Enabled direct read/write from iCloud Drive without copying into isolated sandboxes.",
+        v1_date: "August 2026",
+        v1_1_title: "First Native iPadOS Port Bootstrapped",
+        v1_1_desc: "Successfully compiled and launched on physical iPad hardware using static Qt 6.11.1.",
+        v1_2_title: "Mobile GDAL & PROJ Geospatial Engine Cross-Compilation",
+        v1_2_desc: "Supported high-resolution GeoTIFF aerial imagery and coordinate reference system transformations.",
+        v1_3_title: "Touch Gesture Interface",
+        v1_3_desc: "Optimized touch interactions including pinch-to-zoom, pan gestures, and touch toolbar sizing.",
+        sp_tag: "GitHub Sponsors",
+        sp_title: "Support & Sponsorship",
+        sp_desc: "This project is free and open-source under GNU GPLv3. Your support through GitHub Sponsors directly sustains long-term development, hardware testing, and continuous maintenance!",
+        sp_box_title: "Sponsor @acche on GitHub",
+        sp_box_desc: "Through GitHub Sponsors, you can sponsor monthly or via a one-time tier. Every contribution directly helps cover the Apple Developer Program annual fees ($99/year), continuous iOS architectural updates, and real-device testing.",
+        sp_btn_sponsor: "Sponsor on GitHub",
+        sp_btn_star: "⭐ Star on GitHub",
+        sp_r1_title: "Developer Program Fees",
+        sp_r1_desc: "Sustaining the annual Apple Developer Program subscription ($99/yr) for code signing and deployment.",
+        sp_r2_title: "CI Build Infrastructure",
+        sp_r2_desc: "Powering automated GitHub Actions Apple Silicon runners for daily build health checks.",
+        sp_r3_title: "Fieldwork Experience",
+        sp_r3_desc: "On-site mapping validation, user feedback iterations, and upstream community synchronization.",
+        footer_base: "Based on the upstream",
+        footer_license: "Licensed under GNU General Public License v3.0 (GPLv3)",
+        footer_credit: "Designed with care for Orienteers & Cartographers."
+      },
+      zh: {
+        nav_features: "特色功能",
+        nav_changelog: "更新历史",
+        nav_sponsor: "赞助支持",
+        nav_github: "GitHub 仓库",
+        nav_btn_sponsor: "赞助支持",
+        hero_badge: "iOS 17+ / iPadOS 17+ 通用版已发布",
+        hero_title: "专业定向越野制图<br>掌上触控与野外外业利器",
+        hero_desc: "将世界主流的开源定向越野制图工具 OpenOrienteering Mapper 完整移植至 iPad 与 iPhone。为野外踏勘、Apple Pencil 绘制、GPS 轨迹记录与多设备协同而生。",
+        hero_btn_changelog: "📜 查看版本历史",
+        hero_btn_sponsor: "GitHub Sponsors 赞助",
+        hero_btn_source: "⭐ GitHub 源码",
+        feat_1_title: "Universal 跨端适配",
+        feat_1_desc: "深度适配 iPad 全系列大屏（支持 Apple Pencil 精准绘制）与 iPhone 全系列（大屏 Pro Max 到小屏 mini 随身查图）。",
+        feat_2_title: "离线外业就绪 (Offline Ready)",
+        feat_2_desc: "支持 GeoTIFF 航片大底图脱网读取，并在深山无信号环境中结合 GPS 与电子罗盘进行实时航迹定位。",
+        feat_3_title: "iCloud 就地读写与多机协同",
+        feat_3_desc: "支持 iOS 系统“文件”App 原地保存，Mac、iPad、iPhone 间无缝同步，并支持分测区导入合并总图。",
+        feat_4_title: "GitHub Actions 自动同步",
+        feat_4_desc: "每日自动检测 upstream 官方主线提交，完成无冲突合并与 Apple Silicon 云端编译健康检查。",
+        cl_tag: "Release Notes",
+        cl_title: "版本更新历史",
+        cl_desc: "持续跟进官方主线演进，记录每一次功能改进、缺陷修复与平台优化。",
+        badge_latest: "最新版本",
+        tag_feat: "新功能",
+        tag_opt: "优化",
+        tag_fix: "修复",
+        tag_ci: "CI/CD",
+        v3_date: "2026 年 10 月 6 日",
+        v3_1_title: "iPhone Universal 架构全面适配",
+        v3_1_desc: "调整打包配置中的 UIDeviceFamily 为 [1, 2]，iPhone 13/14/15/16 全系列机型原生兼容运行。",
+        v3_2_title: "移动端首页按钮精简",
+        v3_2_desc: "合并冗余的「导入项目」与「打开地图」按钮为统一的 Open map ...，并在打开文件时自动识别 .mapperproject 目录包与工程清单。",
+        v3_3_title: "集成 GitHub Actions 自动化同步流水线",
+        v3_3_desc: "每日凌晨自动拉取 OpenOrienteering/mapper 官方 master 提交，执行无冲突合并及 C++ 依赖编译验证，遇异常自动提 Issue 报警。",
+        v3_4_title: "修复底图相对路径与离线状态判定",
+        v3_4_desc: "完善底图缺失检测，准确呈现 offline ready / location not set / files missing 测绘就绪状态。",
+        v2_date: "2026 年 9 月",
+        v2_1_title: "Apple Silicon 与 Xcode 工具链重构",
+        v2_1_desc: "迁移至纯原生 CMake 与 Ninja 构建流水线，支持 arm64 原生真机打包。",
+        v2_2_title: "CoreLocation 与 CoreMotion 原生传感器桥接",
+        v2_2_desc: "实现移动设备上的 GPS 实时坐标显示与指北针指南针自动回正。",
+        v2_3_title: "LSSupportsOpeningDocumentsInPlace 就地读写支持",
+        v2_3_desc: "开启 iOS 文件提供者原地修改能力，支持配合 iCloud 云盘实现实时多端同步。",
+        v1_date: "2026 年 8 月",
+        v1_1_title: "首个 iPadOS 原生编译版本问世",
+        v1_1_desc: "完成 Qt 6.11.1 静态构建并在真实 iPad 设备上成功点亮运行。",
+        v1_2_title: "移动端 GDAL / PROJ 交叉编译集成",
+        v1_2_desc: "支持读取 GeoTIFF 高清卫星遥感与航拍正射底图及坐标投影变换。",
+        v1_3_title: "触控手势模式移植",
+        v1_3_desc: "优化双指缩放、平移拖拽手势与移动端触控大按钮界面排版。",
+        sp_tag: "GitHub Sponsors",
+        sp_title: "支持与赞助",
+        sp_desc: "本项目为自由开源软件（GPLv3）。您的赞助将直接通过 GitHub 官方赞助渠道用于项目的长期维护与开发！",
+        sp_box_title: "Sponsor @acche on GitHub",
+        sp_box_desc: "通过 GitHub Sponsors，您可以选择按月或单次赞助支持作者。所有资助将直接用于覆盖每年的 Apple Developer 开发者账号费用（$99/年）以及持续的 iOS 架构更新。",
+        sp_btn_sponsor: "Sponsor on GitHub",
+        sp_btn_star: "⭐ 在 GitHub Star 项目",
+        sp_r1_title: "开发者账号维护",
+        sp_r1_desc: "支撑每年的 Apple Developer 证书签名（$99/年）与测试分发。",
+        sp_r2_title: "CI 构建资源",
+        sp_r2_desc: "支持 GitHub Actions 自动化编译环境的日常健康运转。",
+        sp_r3_title: "野外测绘优化",
+        sp_r3_desc: "实地踏勘体验反馈与持续跟进上游 OpenOrienteering 社区。",
+        footer_base: "本项目基于官方开源项目",
+        footer_license: "遵循 GNU 通用公共许可证 v3.0 (GPLv3)",
+        footer_credit: "专为定向越野爱好者与制图员精心打造。"
+      }
+    };
+
+    function setLanguage(lang) {
+      if (!translations[lang]) lang = 'en';
+      
+      // Update toggle buttons active state
+      document.getElementById('btnEn').classList.toggle('active', lang === 'en');
+      document.getElementById('btnZh').classList.toggle('active', lang === 'zh');
+      
+      // Update HTML lang attribute
+      document.documentElement.lang = lang;
+      
+      // Update text nodes
+      const dict = translations[lang];
+      document.querySelectorAll('[data-i18n]').forEach(el => {
+        const key = el.getAttribute('data-i18n');
+        if (dict[key]) {
+          el.innerText = dict[key];
+        }
+      });
+
+      document.querySelectorAll('[data-i18n-html]').forEach(el => {
+        const key = el.getAttribute('data-i18n-html');
+        if (dict[key]) {
+          el.innerHTML = dict[key];
+        }
+      });
+
+      // Save preference
+      localStorage.setItem('mapper_lang', lang);
+    }
+
+    // Initialize: default to English, or use user's saved choice
+    const savedLang = localStorage.getItem('mapper_lang') || 'en';
+    setLanguage(savedLang);
+  </script>
 </body>
 </html>
