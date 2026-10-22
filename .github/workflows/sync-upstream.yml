@@ -68,6 +68,7 @@ jobs:
             -DCMAKE_BUILD_TYPE=Release \
             -DCMAKE_PREFIX_PATH="$(brew --prefix qt@6);$(brew --prefix proj);$(brew --prefix gdal)" \
             -DMapper_BUILD_MANUAL=OFF \
+            -DBUILD_TESTING=OFF \
             -DMapper_USE_GDAL=ON \
             -DMapper_WITH_COVE=OFF \
             -DMapper_MANUAL_QTHELP=OFF \

@@ -317,11 +317,12 @@ add_subdirectory("src")
 add_subdirectory("doc/licensing")
 add_subdirectory("packaging")
 
+option(BUILD_TESTING "Build tests" ON)
 if(CMAKE_CROSSCOMPILING)
 	add_custom_target(TEST_WARNING ALL
 	  COMMENT "Crosscompiling, skipping all tests")
 	add_dependencies(TEST_WARNING Mapper)
-else()
+elseif(BUILD_TESTING)
 	enable_testing()
 	add_subdirectory("test")
 endif()

@@ -138,8 +138,8 @@ add_library(MapperTestUtils STATIC
     image-difference.cpp
 )
 target_link_libraries(MapperTestUtils PRIVATE
-  Qt5::Widgets
-  Qt5::Test
+  ${Mapper_QT}::Widgets
+  ${Mapper_QT}::Test
 )
 
 
