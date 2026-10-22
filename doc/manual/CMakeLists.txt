@@ -75,7 +75,8 @@ find_program(DOXYGEN_EXECUTABLE
   DOC "The path of the doxygen executable"
 )
 if(NOT DOXYGEN_EXECUTABLE)
-	message(FATAL_ERROR "doxygen executable not found.")
+	message(WARNING "doxygen executable not found. Skipping user manual.")
+	return()
 endif()
 
 set(Mapper_COMPRESSED_HELP "Mapper ${Mapper_VERSION_FILESYSTEM} Manual.qch")

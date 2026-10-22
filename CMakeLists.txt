@@ -292,7 +292,10 @@ endif()
 
 # Subdirectories
 
-add_subdirectory("doc/manual")
+option(Mapper_BUILD_MANUAL "Build user manual" ON)
+if(Mapper_BUILD_MANUAL AND NOT IOS)
+	add_subdirectory("doc/manual")
+endif()
 add_subdirectory("examples")
 add_subdirectory("symbol sets")
 add_subdirectory("translations")

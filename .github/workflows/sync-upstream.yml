@@ -57,7 +57,7 @@ jobs:
       - name: Install Build Dependencies
         if: steps.sync_check.outputs.behind_count != '0' && steps.sync_check.outputs.merge_status == 'success'
         run: |
-          brew install ninja qt@6 proj gdal libxml2
+          brew install ninja qt@6 proj gdal libxml2 doxygen
           brew link --force qt@6
 
       - name: Build and Verify Compilation
@@ -67,6 +67,7 @@ jobs:
           cmake -B build -G Ninja \
             -DCMAKE_BUILD_TYPE=Release \
             -DCMAKE_PREFIX_PATH="$(brew --prefix qt@6);$(brew --prefix proj);$(brew --prefix gdal)" \
+            -DMapper_BUILD_MANUAL=OFF \
             -DMapper_USE_GDAL=ON \
             -DMapper_WITH_COVE=OFF \
             -DMapper_MANUAL_QTHELP=OFF \
